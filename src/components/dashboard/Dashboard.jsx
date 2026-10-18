@@ -32,13 +32,14 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
         </div>
 
         
-<div className="flex shrink-0 items-center gap-2">
+
+<div className="flex shrink-0 items-center gap-1.5">
   <button
     type="button"
     onClick={onToggleTheme}
     aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
     title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-    className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone text-sm transition hover:bg-stone/30 dark:border-[#55595D] dark:hover:bg-white/10"
+    className="flex h-8 w-8 items-center justify-center rounded-md border border-stone/80 text-xs transition hover:bg-stone/30 dark:border-[#55595D] dark:hover:bg-white/10"
   >
     <span aria-hidden="true">
       {darkMode ? '☀️' : '🌙'}
@@ -47,11 +48,12 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
 
   <button
     onClick={() => dispatch(logout())}
-    className="rounded-lg border border-stone px-3 py-2 text-sm font-medium transition hover:bg-white dark:border-[#55595D] dark:hover:bg-[#34383C] sm:px-4"
+    className="rounded-md border border-stone/80 px-2.5 py-1.5 text-xs font-medium transition hover:bg-white dark:border-[#55595D] dark:hover:bg-[#34383C]"
   >
     Sign Out
   </button>
 </div>
+
 
       </header>
 
