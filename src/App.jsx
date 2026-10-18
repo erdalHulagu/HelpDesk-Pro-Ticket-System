@@ -48,14 +48,14 @@ if (token) {
           <span aria-hidden="true">
             {darkMode ? '☀️' : '🌙'}
           </span>
-          <span className="text-sm font-medium">
+          <span className="text-sm font-small">
             {darkMode ? 'Light Mode' : 'Dark Mode'}
           </span>
         </button>
       </header>
 
       <section className="flex min-h-[calc(100vh-73px)] items-center justify-center px-5 py-12">
-        <div className="w-full max-w-md min-h-[590px] flex flex-col justify-center">
+        <div className="w-full max-w-md mmin-h-147.5` flex flex-col justify-center">
           {showRegister ? (
             <Register />
           ) : (
