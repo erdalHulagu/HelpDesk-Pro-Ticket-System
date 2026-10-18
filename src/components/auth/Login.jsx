@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useLoginMutation } from '../../services/api';
+import { useLoginMutation } from '../../services/authService';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../features/auth/authSlice';
 

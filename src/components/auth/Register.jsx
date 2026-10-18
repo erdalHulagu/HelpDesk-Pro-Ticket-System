@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useRegisterMutation } from '../../services/api';
+import { useRegisterMutation } from '../../services/authService';
 
 const Register=() => {
   const [username, setUsername] = useState('');

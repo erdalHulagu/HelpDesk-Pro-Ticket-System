@@ -1,9 +1,25 @@
 
 import { api } from './api';
 
-export const ticketService = {
-  getMyTickets: () => api.endpoints.getMyTickets.initiate(),
+export const ticketApi = api.injectEndpoints({
+  endpoints: (builder) => ({
+    getMyTickets: builder.query({
+      query: () => '/tickets/user',
+      providesTags: ['Ticket'],
+    }),
 
-  createTicket: (ticketData) =>
-    api.endpoints.createTicket.initiate(ticketData),
-};
+    createTicket: builder.mutation({
+      query: (ticketData) => ({
+        url: '/tickets',
+        method: 'POST',
+        body: ticketData,
+      }),
+      invalidatesTags: ['Ticket'],
+    }),
+  }),
+});
+
+export const {
+  useGetMyTicketsQuery,
+  useCreateTicketMutation,
+} = ticketApi;

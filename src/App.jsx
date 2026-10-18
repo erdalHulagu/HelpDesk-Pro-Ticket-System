@@ -23,8 +23,14 @@ const App = () => {
     );
   }, [darkMode]);
 if (token) {
-  return <Dashboard />;
+  return (
+    <Dashboard
+      darkMode={darkMode}
+      onToggleTheme={() => setDarkMode((current) => !current)}
+    />
+  );
 }
+
   return (
     
     <main className="min-h-screen bg-ivory text-charcoal transition-colors duration-300 dark:bg-[#25282B] dark:text-ivory">

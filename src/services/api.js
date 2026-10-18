@@ -18,41 +18,5 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery,
   tagTypes: ['User', 'Ticket', 'Comment', 'Attachment'],
-  endpoints: (builder) => ({
-    login: builder.mutation({
-      query: (credentials) => ({
-        url: '/auth/login',
-        method: 'POST',
-        body: credentials,
-      }),
-    }),
-
-    register: builder.mutation({
-      query: (userData) => ({
-        url: '/auth/register',
-        method: 'POST',
-        body: userData,
-        responseHandler: 'text',
-      }),
-    }),
-    
-createTicket: builder.mutation({
-  query: (ticketData) => ({
-    url: '/tickets',
-    method: 'POST',
-    body: ticketData,
-  }),
-}),
-
-
-    getMyTickets: builder.query({
-      query: () => '/tickets/user',
-    }),
-  }),
+  endpoints: () => ({}),
 });
-
-export const {
-  useLoginMutation,
-  useRegisterMutation,
-  useGetMyTicketsQuery,
-} = api;
