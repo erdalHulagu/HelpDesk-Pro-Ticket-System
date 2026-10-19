@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
@@ -31,6 +32,43 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
+  // Calculate ticket statistics from the existing ticket list.
+  const ticketList = Array.isArray(tickets) ? tickets : [];
+
+  const ticketStats = [
+    {
+      label: 'Total Tickets',
+      value: ticketList.length,
+      marker: '◈',
+      accent: 'bg-champagne/15 text-champagne',
+    },
+    {
+      label: 'Open',
+      value: ticketList.filter((ticket) => ticket.status === 'OPEN').length,
+      marker: '○',
+      accent:
+        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+    },
+    {
+      label: 'In Progress',
+      value: ticketList.filter(
+        (ticket) => ticket.status === 'IN_PROGRESS'
+      ).length,
+      marker: '↗',
+      accent:
+        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    },
+    {
+      label: 'Resolved',
+      value: ticketList.filter(
+        (ticket) => ticket.status === 'RESOLVED'
+      ).length,
+      marker: '✓',
+      accent:
+        'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+    },
+  ];
+
   const handleFormChange = (event) => {
     const { name, value } = event.target;
 
@@ -49,10 +87,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
     setFormError('');
     setFormSuccess('');
 
-    if (
-      !formData.title.trim() ||
-      !formData.description.trim()
-    ) {
+    if (!formData.title.trim() || !formData.description.trim()) {
       setFormError('Please enter a title and description.');
       return;
     }
@@ -85,34 +120,33 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-ivory p-3 text-charcoal dark:bg-[#25282B] dark:text-ivory sm:p-5">
-      <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-3 pb-4">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-widest text-champagne">
+      {/* Dashboard header */}
+      <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-4 border-b border-stone/70 pb-4 dark:border-[#55595D] sm:pb-5">
+        <div className="min-w-0 border-l-2 border-champagne pl-3 sm:pl-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-champagne sm:text-xs">
             Helpdesk Portal
           </p>
-          <h1 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
+
+          <h1 className="mt-1.5 break-words text-lg font-semibold tracking-tight sm:text-2xl">
             Welcome back, {username}!
           </h1>
-          <p className="mt-1 text-sm text-charcoal/65 dark:text-ivory/65">
+
+          <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60 sm:text-sm">
             Manage your support requests.
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={onToggleTheme}
             aria-label={
-              darkMode
-                ? 'Switch to light mode'
-                : 'Switch to dark mode'
+              darkMode ? 'Switch to light mode' : 'Switch to dark mode'
             }
             title={
-              darkMode
-                ? 'Switch to light mode'
-                : 'Switch to dark mode'
+              darkMode ? 'Switch to light mode' : 'Switch to dark mode'
             }
-            className="flex h-8 w-8 items-center justify-center rounded-md border border-stone/80 text-xs transition hover:bg-stone/30 dark:border-[#55595D] dark:hover:bg-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone/80 bg-white/60 text-sm transition duration-200 hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] dark:bg-[#34383C] dark:hover:border-champagne"
           >
             <span aria-hidden="true">
               {darkMode ? '☀️' : '🌙'}
@@ -122,74 +156,116 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           <button
             type="button"
             onClick={() => dispatch(logout())}
-            className="rounded-md border border-stone/80 px-2.5 py-1.5 text-xs font-medium transition hover:bg-white dark:border-[#55595D] dark:hover:bg-[#34383C]"
+            className="rounded-full border border-champagne/70 px-3 py-2 text-xs font-semibold transition duration-200 hover:bg-champagne hover:text-white dark:hover:text-[#25282B] sm:px-4"
           >
             Sign Out
           </button>
         </div>
       </header>
 
-      <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col">
+      <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col pt-3 sm:pt-4">
         {activeSection === 'dashboard' && (
-          <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-3 lg:grid-rows-1 lg:gap-4">
-            <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-5 lg:col-span-2">
-              <div className="flex shrink-0 items-center justify-between gap-3 border-b border-stone/60 pb-3 dark:border-[#55595D]">
-                <div>
-                  <p className="text-sm text-charcoal/60 dark:text-ivory/60">
-                    My Tickets
+          <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4">
+            {/* Ticket statistics */}
+            <div className="grid shrink-0 grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+              {ticketStats.map((stat) => (
+                <article
+                  key={stat.label}
+                  className="min-w-0 rounded-xl border border-stone/70 bg-white p-3 shadow-sm transition duration-200 hover:border-champagne/70 dark:border-[#55595D] dark:bg-[#34383C] sm:p-4"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-xs font-medium text-charcoal/60 dark:text-ivory/60 sm:text-sm">
+                      {stat.label}
+                    </p>
+
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-sm font-semibold ${stat.accent}`}
+                      aria-hidden="true"
+                    >
+                      {stat.marker}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-2xl font-semibold tracking-tight sm:mt-3 sm:text-3xl">
+                    {isLoading ? '—' : isError ? '—' : stat.value}
                   </p>
-                  <h2 className="mt-1 text-2xl font-semibold">
-                    {Array.isArray(tickets) ? tickets.length : 0}
-                  </h2>
+
+                  <div className="mt-2 h-0.5 w-9 rounded-full bg-champagne/70" />
+                </article>
+              ))}
+            </div>
+
+            {/* Main dashboard content */}
+            <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-3 lg:grid-rows-1 lg:gap-4">
+              {/* My Tickets */}
+              <div className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-stone/70 bg-white p-3.5 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-5 lg:col-span-2">
+                <div className="flex shrink-0 items-center justify-between gap-3 border-b border-stone/60 pb-3 dark:border-[#55595D]">
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-charcoal/55 dark:text-ivory/55">
+                      Support overview
+                    </p>
+                    <h2 className="mt-1 text-lg font-semibold sm:text-xl">
+                      My Tickets
+                    </h2>
+                    <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
+                      {isLoading
+                        ? 'Loading your requests...'
+                        : `${ticketList.length} total ${
+                            ticketList.length === 1 ? 'ticket' : 'tickets'
+                          }`}
+                    </p>
+                  </div>
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-champagne/30 bg-champagne/10 text-xl text-champagne">
+                    ◈
+                  </div>
                 </div>
 
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-champagne/20 text-xl">
-                  ◈
-                </div>
-              </div>
-
-              <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto ticket-scrollbar overscroll-contain pr-1">
-                {isLoading && (
-                  <p className="py-3 text-sm text-charcoal/65 dark:text-ivory/65">
-                    Loading tickets...
-                  </p>
-                )}
-
-                {isError && (
-                  <p role="alert" className="py-3 text-sm text-red-600">
-                    Unable to load tickets.
-                  </p>
-                )}
-
-                {Array.isArray(tickets) &&
-                  tickets.length === 0 &&
-                  !isLoading && (
-                    <p className="py-4 text-sm text-charcoal/65 dark:text-ivory/65">
-                      You have no tickets yet.
+                <div className="ticket-scrollbar mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1">
+                  {isLoading && (
+                    <p className="py-3 text-sm text-charcoal/65 dark:text-ivory/65">
+                      Loading tickets...
                     </p>
                   )}
 
-                {Array.isArray(tickets) &&
-                  tickets.map((ticket) => (
+                  {isError && (
+                    <p role="alert" className="py-3 text-sm text-red-600 dark:text-red-400">
+                      Unable to load tickets. Please try again.
+                    </p>
+                  )}
+
+                  {!isLoading && !isError && ticketList.length === 0 && (
+                    <div className="flex min-h-32 flex-col items-center justify-center px-4 py-6 text-center">
+                      <span className="text-2xl text-champagne" aria-hidden="true">
+                        ◈
+                      </span>
+                      <p className="mt-2 text-sm font-medium">
+                        No tickets yet
+                      </p>
+                      <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
+                        Create a ticket when you need technical support.
+                      </p>
+                    </div>
+                  )}
+
+                  {ticketList.map((ticket) => (
                     <article
                       key={ticket.id}
                       className="group relative overflow-hidden rounded-xl border border-stone/60 bg-white/80 p-3.5 shadow-sm transition-all duration-200 hover:border-champagne/70 hover:shadow-md dark:border-[#55595D] dark:bg-[#34383C]"
                     >
-                      {/* Elegant priority indicator */}
                       <div
-                        className={`absolute bottom-3 left-0 top-3 w-1 rounded-r-full ${
+                        className={`absolute bottom-3 left-0 top-3 w-0.5 rounded-r-full ${
                           ticket.priority === 'CRITICAL'
                             ? 'bg-red-500'
                             : ticket.priority === 'HIGH'
                               ? 'bg-orange-400'
                               : ticket.priority === 'MEDIUM'
-                                ? 'bg-amber-300'
-                                : 'bg-emerald-400'
+                                ? 'bg-champagne'
+                                : 'bg-emerald-500/70'
                         }`}
                       />
 
                       <div className="pl-2">
-                        {/* Ticket title and status */}
                         <div className="flex min-w-0 flex-col justify-between gap-2 sm:flex-row sm:items-center">
                           <div className="min-w-0">
                             <h3 className="break-words text-sm font-semibold">
@@ -216,7 +292,6 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                           </span>
                         </div>
 
-                        {/* Priority badge */}
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <span className="text-xs text-charcoal/60 dark:text-ivory/60">
                             Priority:
@@ -229,7 +304,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                                 : ticket.priority === 'HIGH'
                                   ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300'
                                   : ticket.priority === 'MEDIUM'
-                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
+                                    ? 'bg-[#f4ead4] text-[#80643a] dark:bg-[#514633] dark:text-[#e6cb99]'
                                     : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200'
                             }`}
                           >
@@ -237,7 +312,6 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                           </span>
                         </div>
 
-                        {/* Ticket description */}
                         {ticket.description && (
                           <p className="mt-2 break-words text-sm leading-5 text-charcoal/70 dark:text-ivory/70">
                             {ticket.description}
@@ -246,47 +320,59 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                       </div>
                     </article>
                   ))}
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3 lg:flex lg:min-h-0 lg:flex-col">
-              <button
-                type="button"
-                onClick={() => {
-                  setFormError('');
-                  setFormSuccess('');
-                  setActiveSection('createTicket');
-                }}
-                className="min-w-0 rounded-xl border border-stone/70 bg-white p-3 text-left transition hover:border-champagne hover:shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-4 lg:flex-1"
-              >
-                <p className="text-xs text-charcoal/60 dark:text-ivory/60">
-                  Support
-                </p>
-                <h2 className="mt-1 text-sm font-semibold sm:text-base">
-                  Create a Ticket
-                </h2>
-                <p className="mt-1 hidden text-xs text-charcoal/65 dark:text-ivory/65 sm:block">
-                  Get help with a technical issue.
-                </p>
-              </button>
+              {/* Quick actions and account */}
+              <div className="grid grid-cols-2 gap-3 lg:flex lg:min-h-0 lg:flex-col">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormError('');
+                    setFormSuccess('');
+                    setActiveSection('createTicket');
+                  }}
+                  className="group min-w-0 rounded-xl border border-stone/70 bg-white p-3 text-left transition duration-200 hover:border-champagne hover:shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-4 lg:flex-1"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-champagne/15 text-lg text-champagne transition group-hover:bg-champagne/25">
+                    +
+                  </span>
+                  <p className="mt-3 text-xs font-medium text-charcoal/60 dark:text-ivory/60">
+                    Support
+                  </p>
+                  <h2 className="mt-1 text-sm font-semibold sm:text-base">
+                    Create a Ticket
+                  </h2>
+                  <p className="mt-1 hidden text-xs leading-5 text-charcoal/65 dark:text-ivory/65 sm:block">
+                    Get help with a technical issue.
+                  </p>
+                </button>
 
-              <div className="min-w-0 rounded-xl border border-stone/70 bg-white p-3 dark:border-[#55595D] dark:bg-[#34383C] sm:p-4 lg:flex-1">
-                <p className="text-xs text-charcoal/60 dark:text-ivory/60">
-                  Account
-                </p>
-                <h2 className="mt-1 text-sm font-semibold sm:text-base">
-                  My Profile
-                </h2>
-                <p className="mt-1 hidden text-xs text-charcoal/65 dark:text-ivory/65 sm:block">
-                  Review your account information.
-                </p>
+                <div className="min-w-0 rounded-xl border border-stone/70 bg-white p-3 dark:border-[#55595D] dark:bg-[#34383C] sm:p-4 lg:flex-1">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-champagne/15 text-lg text-champagne">
+                    ♙
+                  </span>
+                  <p className="mt-3 text-xs font-medium text-charcoal/60 dark:text-ivory/60">
+                    Account
+                  </p>
+                  <h2 className="mt-1 text-sm font-semibold sm:text-base">
+                    My Profile
+                  </h2>
+                  <p className="mt-1 hidden text-xs leading-5 text-charcoal/65 dark:text-ivory/65 sm:block">
+                    Review your account information.
+                  </p>
+                  <p className="mt-2 break-words text-xs text-charcoal/55 dark:text-ivory/55">
+                    {username}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         )}
 
+        {/* Create ticket section */}
         {activeSection === 'createTicket' && (
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
+          <div className="ticket-scrollbar min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
             <div className="mb-5 flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-medium uppercase tracking-widest text-champagne">
@@ -295,22 +381,25 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 <h2 className="mt-1 text-xl font-semibold">
                   Create a Ticket
                 </h2>
+                <p className="mt-1 text-sm text-charcoal/60 dark:text-ivory/60">
+                  Tell us about the issue you are experiencing.
+                </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => setActiveSection('dashboard')}
-                className="rounded-md border border-stone px-3 py-2 text-sm transition hover:bg-ivory dark:border-[#55595D] dark:hover:bg-[#25282B]"
+                className="shrink-0 rounded-full border border-stone px-3 py-2 text-xs font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] sm:text-sm"
               >
-                Back to Dashboard
+                Back
               </button>
             </div>
 
-            <form onSubmit={handleCreateTicket} className="space-y-4">
+            <form onSubmit={handleCreateTicket} className="max-w-3xl space-y-4">
               <div>
                 <label
                   htmlFor="ticket-title"
-                  className="mb-1 block text-sm font-medium"
+                  className="mb-1.5 block text-sm font-medium"
                 >
                   Title
                 </label>
@@ -322,14 +411,14 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                   required
                   maxLength={150}
                   placeholder="Enter ticket title"
-                  className="w-full rounded-lg border border-stone bg-transparent px-3 py-2 text-sm outline-none focus:border-champagne dark:border-[#55595D]"
+                  className="w-full rounded-lg border border-stone bg-transparent px-3 py-2.5 text-sm outline-none transition focus:border-champagne focus:ring-2 focus:ring-champagne/15 dark:border-[#55595D]"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="ticket-description"
-                  className="mb-1 block text-sm font-medium"
+                  className="mb-1.5 block text-sm font-medium"
                 >
                   Description
                 </label>
@@ -341,7 +430,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                   required
                   rows={4}
                   placeholder="Describe your issue"
-                  className="w-full resize-y rounded-lg border border-stone bg-transparent px-3 py-2 text-sm outline-none focus:border-champagne dark:border-[#55595D]"
+                  className="w-full resize-y rounded-lg border border-stone bg-transparent px-3 py-2.5 text-sm outline-none transition focus:border-champagne focus:ring-2 focus:ring-champagne/15 dark:border-[#55595D]"
                 />
               </div>
 
@@ -349,7 +438,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 <div>
                   <label
                     htmlFor="ticket-category"
-                    className="mb-1 block text-sm font-medium"
+                    className="mb-1.5 block text-sm font-medium"
                   >
                     Category
                   </label>
@@ -358,7 +447,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                     name="category"
                     value={formData.category}
                     onChange={handleFormChange}
-                    className="w-full rounded-lg border border-stone bg-transparent px-3 py-2 text-sm outline-none focus:border-champagne dark:border-[#55595D]"
+                    className="w-full rounded-lg border border-stone bg-transparent px-3 py-2.5 text-sm outline-none transition focus:border-champagne focus:ring-2 focus:ring-champagne/15 dark:border-[#55595D]"
                   >
                     <option value="HARDWARE">Hardware</option>
                     <option value="SOFTWARE">Software</option>
@@ -370,7 +459,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 <div>
                   <label
                     htmlFor="ticket-priority"
-                    className="mb-1 block text-sm font-medium"
+                    className="mb-1.5 block text-sm font-medium"
                   >
                     Priority
                   </label>
@@ -379,7 +468,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                     name="priority"
                     value={formData.priority}
                     onChange={handleFormChange}
-                    className="w-full rounded-lg border border-stone bg-transparent px-3 py-2 text-sm outline-none focus:border-champagne dark:border-[#55595D]"
+                    className="w-full rounded-lg border border-stone bg-transparent px-3 py-2.5 text-sm outline-none transition focus:border-champagne focus:ring-2 focus:ring-champagne/15 dark:border-[#55595D]"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -390,13 +479,13 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
               </div>
 
               {formError && (
-                <p role="alert" className="text-sm text-red-600">
+                <p role="alert" className="text-sm text-red-600 dark:text-red-400">
                   {formError}
                 </p>
               )}
 
               {formSuccess && (
-                <p role="status" className="text-sm text-green-600">
+                <p role="status" className="text-sm text-emerald-700 dark:text-emerald-400">
                   {formSuccess}
                 </p>
               )}
@@ -405,7 +494,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="rounded-lg bg-charcoal px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-champagne dark:text-charcoal"
+                  className="rounded-full bg-charcoal px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-champagne dark:text-charcoal"
                 >
                   {isCreating ? 'Creating...' : 'Submit Ticket'}
                 </button>
@@ -413,7 +502,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 <button
                   type="button"
                   onClick={() => setActiveSection('dashboard')}
-                  className="rounded-lg border border-stone px-5 py-2.5 text-sm font-medium transition hover:bg-ivory dark:border-[#55595D] dark:hover:bg-[#25282B]"
+                  className="rounded-full border border-stone px-5 py-2.5 text-sm font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D]"
                 >
                   Cancel
                 </button>
