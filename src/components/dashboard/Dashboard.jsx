@@ -1,17 +1,36 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
 import {useGetMyTicketsQuery,useCreateTicketMutation,} from '../../services/ticketService';
 
+import { useGetProfilePhotoQuery } from '../../services/profileService';
+import ProfileCard from './widgets/ProfileCard';
+import ProfilePage from './profile/ProfilePage';
 import TicketList from './widgets/TicketList';
 import QuickActionCard from './widgets/QuickActionCard';
 import CreateTicketForm from './widgets/CreateTicketForm';
 import StatCard from './widgets/StatCard';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
-  const { username } = useSelector((state) => state.auth);
+  const { username, email } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
+
+const { data: profilePhotoBlob } = useGetProfilePhotoQuery();
+const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+
+useEffect(() => {
+  if (!profilePhotoBlob || profilePhotoBlob.size === 0) {
+    setProfilePhotoUrl(null);
+    return;
+  }
+
+  const url = URL.createObjectURL(profilePhotoBlob);
+  setProfilePhotoUrl(url);
+
+  return () => URL.revokeObjectURL(url);
+}, [profilePhotoBlob]);
 
   const {
     data: tickets,
@@ -133,6 +152,12 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
     setFormSuccess('');
   };
 
+  
+
+const handleLogout = () => {
+  dispatch(logout());
+};
+
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-ivory p-3 text-charcoal dark:bg-[#25282B] dark:text-ivory sm:p-5">
       {/* Dashboard header */}
@@ -151,31 +176,101 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            aria-label={
-              darkMode ? 'Switch to light mode' : 'Switch to dark mode'
-            }
-            title={
-              darkMode ? 'Switch to light mode' : 'Switch to dark mode'
-            }
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone/80 bg-white/60 text-sm transition duration-200 hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] dark:bg-[#34383C] dark:hover:border-champagne"
-          >
-            <span aria-hidden="true">
-              {darkMode ? '☀️' : '🌙'}
-            </span>
-          </button>
+        
+<div className="flex shrink-0 items-center gap-2 sm:gap-3">
+  {/* Profile card */}
+  
+<button
+  type="button"
+  onClick={() => setActiveSection('profile')}
+  aria-label="Open profile"
+  className="group ml-2 flex items-center gap-2 rounded-lg border border-stone/70 bg-white/70 p-1.5 pr-3 transition duration-200 hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] dark:hover:border-champagne sm:ml-5 sm:gap-2.5 sm:p-2 sm:pr-4"
+>
+  <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-champagne/50 bg-champagne/10 text-champagne sm:h-9 sm:w-9">
+    {profilePhotoUrl ? (
+      <img
+        src={profilePhotoUrl}
+        alt="Profile"
+        className="h-full w-full rounded-full object-cover"
+      />
+    ) : (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        className="h-5 w-5"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="8" r="3.5" />
+        <path
+          d="M5 20a7 7 0 0 1 14 0"
+          strokeLinecap="round"
+        />
+      </svg>
+    )}
+  </div>
 
-          <button
-            type="button"
-            onClick={() => dispatch(logout())}
-            className="rounded-full border border-champagne/70 px-3 py-2 text-xs font-semibold transition duration-200 hover:bg-champagne hover:text-white dark:hover:text-[#25282B] sm:px-4"
-          >
-            Sign Out
-          </button>
-        </div>
+  <div className="hidden min-w-0 text-left sm:block">
+    <p className="text-[10px] font-medium uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
+      Account
+    </p>
+    <p className="max-w-24 truncate text-xs font-semibold text-charcoal dark:text-ivory">
+      {username || 'My Profile'}
+    </p>
+  </div>
+</button>
+
+
+  {/* Theme toggle */}
+  <button
+    type="button"
+    onClick={onToggleTheme}
+    aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+    title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+    className="ml-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone/70 bg-white/70 text-charcoal transition duration-200 hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] dark:text-ivory dark:hover:border-champagne sm:ml-3"
+  >
+    {darkMode ? (
+      /* Sun icon */
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        className="h-[18px] w-[18px]"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+      </svg>
+    ) : (
+      /* Moon icon */
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-[18px] w-[18px]"
+        aria-hidden="true"
+      >
+        <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" />
+      </svg>
+    )}
+  </button>
+
+  {/* Sign out */}
+  <button
+    type="button"
+    onClick={() => dispatch(logout())}
+    className="rounded-lg border border-champagne/70 px-3 py-2 text-xs font-semibold transition duration-200 hover:bg-champagne hover:text-white focus:outline-none focus:ring-2 focus:ring-champagne dark:hover:text-[#25282B] sm:px-4 sm:text-sm"
+  >
+    Sign Out
+  </button>
+</div>
+
       </header>
 
       <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col pt-3 sm:pt-4">
@@ -206,13 +301,15 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
               {/* Quick actions */}
               <QuickActionCard
                 onCreateTicket={handleOpenCreateTicket}
+
               />
+             
             </div>
           </div>
         )}
 
         {/* Create ticket section */}
-        {activeSection === 'createTicket' && (
+       {activeSection === 'createTicket' && (
   <CreateTicketForm
     formData={formData}
     handleFormChange={handleFormChange}
@@ -221,6 +318,16 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
     formSuccess={formSuccess}
     isCreating={isCreating}
     onBack={handleBackToDashboard}
+  />
+)}
+
+{/* Profile section */}
+{activeSection === 'profile' && (
+  <ProfilePage
+    username={username}
+    email={email}
+    onBack={() => setActiveSection('dashboard')}
+    onLogout={handleLogout}
   />
 )}
       </section>
