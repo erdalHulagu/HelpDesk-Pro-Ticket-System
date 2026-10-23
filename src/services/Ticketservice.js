@@ -8,6 +8,21 @@ export const ticketApi = api.injectEndpoints({
       providesTags: ['Ticket'],
     }),
 
+    getAllTickets: builder.query({
+      query: () => '/tickets',
+      providesTags: ['Ticket'],
+    }),
+
+    getActiveTickets: builder.query({
+      query: () => '/tickets/active',
+      providesTags: ['Ticket'],
+    }),
+
+    getAdminTickets: builder.query({
+      query: () => '/admin/tickets',
+      providesTags: ['Ticket'],
+    }),
+
     createTicket: builder.mutation({
       query: (ticketData) => ({
         url: '/tickets',
@@ -21,5 +36,8 @@ export const ticketApi = api.injectEndpoints({
 
 export const {
   useGetMyTicketsQuery,
+  useGetAllTicketsQuery,
+  useGetActiveTicketsQuery,
+  useGetAdminTicketsQuery,
   useCreateTicketMutation,
 } = ticketApi;

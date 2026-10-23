@@ -2,7 +2,13 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../features/auth/authSlice';
-import {useGetMyTicketsQuery,useCreateTicketMutation} from '../../services/ticketService';
+import {
+  useGetMyTicketsQuery,
+  useGetAllTicketsQuery,
+  useGetActiveTicketsQuery,
+  useGetAdminTicketsQuery,
+  useCreateTicketMutation,
+} from '../../services/ticketService';
 import AdminPanel from './AdminPanel';
 import AdminUserDetails from './AdminUserDetails';
 import { useGetProfilePhotoQuery } from '../../services/profileService';
@@ -16,6 +22,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
   const { username, email } = useSelector((state) => state.auth);
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
+  const role = useSelector((state) => state.auth.role);
 
  
   
@@ -32,11 +39,33 @@ useEffect(() => {
   );
 }, [profilePhotoData]);
 
-  const {
-    data: tickets,
-    isLoading,
-    isError,
-  } = useGetMyTicketsQuery();
+  
+const isAdmin = role === 'ADMIN';
+const isITManager = role === 'IT_MANAGER';
+const isITSupport = role === 'IT_SUPPORT';
+
+const useAllTickets = isAdmin || isITManager || isITSupport;
+
+const myTicketsQuery = useGetMyTicketsQuery(undefined, {
+  skip: useAllTickets,
+});
+
+const allTicketsQuery = useGetAllTicketsQuery(undefined, {
+  skip: !useAllTickets,
+});
+
+const tickets = useAllTickets
+  ? allTicketsQuery.data
+  : myTicketsQuery.data;
+
+const isLoading = useAllTickets
+  ? allTicketsQuery.isLoading
+  : myTicketsQuery.isLoading;
+
+const isError = useAllTickets
+  ? allTicketsQuery.isError
+  : myTicketsQuery.isError;
+
 
   const [createTicket, { isLoading: isCreating }] =
     useCreateTicketMutation();
@@ -135,13 +164,15 @@ useEffect(() => {
 
       setActiveSection('dashboard');
     } catch (error) {
-      setFormError(
-        typeof error?.data === 'string'
-          ? error.data
-          : error?.data?.message ||
-              'Unable to create ticket. Please try again.'
-      );
-    }
+  console.error('Create ticket error:', error);
+
+  setFormError(
+    error?.data?.message ||
+      error?.error ||
+      (typeof error?.data === 'string' ? error.data : null) ||
+      'Unable to create ticket. Please try again.'
+  );
+}
   };
 
   const handleBackToDashboard = () => {

@@ -1,5 +1,5 @@
 
-const TicketCard = ({ ticket }) => {
+const TicketCard = ({ ticket,showCreator }) => {
   const statusStyles = {
     CLOSED:
       'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
@@ -47,9 +47,20 @@ const TicketCard = ({ ticket }) => {
               {ticket.title}
             </h3>
 
-            <p className="mt-1 break-words text-xs text-charcoal/60 dark:text-ivory/60">
-              Ticket : {ticket.id} · {ticket.category}
-            </p>
+          {showCreator && (
+  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+    <span className="font-semibold text-[#96743A] dark:text-[#E6CB99]">
+      Created by: {ticket.createdByUsername || 'Unknown'}
+    </span>
+
+    {ticket.createdByRole && (
+      <span className="rounded-full border border-[#C9A96E]/50 bg-[#F4EAD4] px-2 py-0.5 font-medium text-[#80643A] dark:border-[#C9A96E]/40 dark:bg-[#514633] dark:text-[#E6CB99]">
+        {ticket.createdByRole.replaceAll('_', ' ')}
+      </span>
+    )}
+  </div>
+)}
+
           </div>
 
           <span

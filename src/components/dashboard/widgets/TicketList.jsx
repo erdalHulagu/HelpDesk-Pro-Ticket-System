@@ -1,7 +1,10 @@
 
 import TicketCard from './TicketCard';
+import { useSelector } from 'react-redux';
 
 const TicketList = ({ tickets, isLoading, isError }) => {
+  const role = useSelector((state) => state.auth.role);
+const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
   const ticketList = Array.isArray(tickets) ? tickets : [];
 
   return (
@@ -61,7 +64,11 @@ const TicketList = ({ tickets, isLoading, isError }) => {
         )}
 
         {ticketList.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} />
+         <TicketCard
+  key={ticket.id}
+  ticket={ticket}
+  showCreator={showCreator}
+/>
         ))}
       </div>
     </section>
