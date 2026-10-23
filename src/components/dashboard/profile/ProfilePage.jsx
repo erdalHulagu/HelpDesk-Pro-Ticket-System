@@ -1,44 +1,54 @@
-
 import { useEffect, useRef, useState } from 'react';
 import {
-useUploadProfilePhotoMutation,
+  useUploadProfilePhotoMutation,
   useGetProfilePhotoQuery,
 } from '../../../services/profileService';
-const ProfilePage = ({ username, email, onBack, onLogout }) => {
+import { useSelector } from 'react-redux';
+
+const ProfilePage = ({
+  username,
+  email,
+  onBack,
+  onLogout,
+  onAdminPanel,
+}) => {
   const fileInputRef = useRef(null);
   const [photoUrl, setPhotoUrl] = useState(null);
-const [photoError, setPhotoError] = useState('');
+  const [photoError, setPhotoError] = useState('');
 
-const { data: profilePhotoBlob } = useGetProfilePhotoQuery();
+  const role = useSelector((state) => state.auth.role);
 
-useEffect(() => {
-  if (!profilePhotoBlob || profilePhotoBlob.size === 0) return;
-
-  const objectUrl = URL.createObjectURL(profilePhotoBlob);
-  setPhotoUrl(objectUrl);
-
-  return () => {
-    URL.revokeObjectURL(objectUrl);
-  };
-}, [profilePhotoBlob]);
+  const {
+    data: profilePhotoData,
+    isError: isPhotoError,
+  } = useGetProfilePhotoQuery();
 
   const [uploadProfilePhoto, { isLoading: isUploadingPhoto }] =
     useUploadProfilePhotoMutation();
 
+  useEffect(() => {
+    if (profilePhotoData) {
+      setPhotoUrl(profilePhotoData);
+    } else if (isPhotoError) {
+      setPhotoUrl(null);
+    }
+  }, [profilePhotoData, isPhotoError]);
+
   const handlePhotoChange = async (event) => {
-    const file = event.target.files?.[0];
+    const input = event.target;
+    const file = input.files?.[0];
 
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setPhotoError('Please select an image file.');
-      event.target.value = '';
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setPhotoError('Please select a JPG, PNG, or WebP image.');
+      input.value = '';
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       setPhotoError('The image must be smaller than 5 MB.');
-      event.target.value = '';
+      input.value = '';
       return;
     }
 
@@ -47,34 +57,65 @@ useEffect(() => {
     try {
       await uploadProfilePhoto(file).unwrap();
 
-      setPhotoUrl(URL.createObjectURL(file));
-    } catch {
-      setPhotoError('Unable to upload profile photo. Please try again.');
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setPhotoUrl(reader.result);
+        }
+      };
+
+      reader.onerror = () => {
+        setPhotoError('Photo uploaded, but preview could not be displayed.');
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Profile photo upload failed:', error);
+      setPhotoError(
+        error?.data?.error ||
+          error?.message ||
+          'Unable to upload profile photo. Please try again.'
+      );
     } finally {
-      event.target.value = '';
+      input.value = '';
     }
   };
 
   return (
-    <section className="ticket-scrollbar min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
+    <section className="ticket-scrollbar relative z-0 min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-widest text-champagne">
             Account
           </p>
+
           <h2 className="mt-1 text-xl font-semibold">My Profile</h2>
+
           <p className="mt-1 text-sm text-charcoal/60 dark:text-ivory/60">
             View your account information.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={onBack}
-          className="shrink-0 rounded-full border border-stone px-3 py-2 text-xs font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] sm:text-sm"
-        >
-          Back
-        </button>
+        <div className="relative z-10 flex shrink-0 items-center gap-2">
+          {role === 'ADMIN' && (
+            <button
+              type="button"
+              onClick={onAdminPanel}
+              className="relative z-10 cursor-pointer rounded-lg bg-charcoal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-charcoal/90 dark:bg-champagne dark:text-charcoal dark:hover:bg-[#d2b991]"
+            >
+              Admin Panel
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onBack}
+            className="shrink-0 rounded-full border border-stone px-3 py-2 text-xs font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] sm:text-sm"
+          >
+            Back
+          </button>
+        </div>
       </div>
 
       <div className="mx-auto mt-8 max-w-xl">
@@ -123,11 +164,16 @@ useEffect(() => {
           </div>
 
           <p className="mt-2 text-xs text-charcoal/60 dark:text-ivory/60">
-            {isUploadingPhoto ? 'Uploading photo...' : 'Click the photo to change it'}
+            {isUploadingPhoto
+              ? 'Uploading photo...'
+              : 'Click the photo to change it'}
           </p>
 
           {photoError && (
-            <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">
+            <p
+              role="alert"
+              className="mt-2 text-center text-sm text-red-600 dark:text-red-400"
+            >
               {photoError}
             </p>
           )}
@@ -145,6 +191,7 @@ useEffect(() => {
               <p className="text-xs font-medium uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
                 Username
               </p>
+
               <p className="mt-1 break-words text-sm font-medium">
                 {username || 'Not available'}
               </p>
@@ -154,6 +201,7 @@ useEffect(() => {
               <p className="text-xs font-medium uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
                 Email Address
               </p>
+
               <p className="mt-1 break-all text-sm font-medium">
                 {email || 'Not available'}
               </p>

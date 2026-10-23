@@ -18,11 +18,15 @@ const Login=()=> {
     
 const result = await login({ email, password }).unwrap();
 
+
 dispatch(setCredentials({
   token: result.token,
   userId: result.userId,
   username: result.username,
+  email: result.email,
+  role: result.role,
 }));
+
 console.log(result)
 
     } catch (err) {
