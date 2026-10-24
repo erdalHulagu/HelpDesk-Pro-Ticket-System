@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import TicketCard from './TicketCard';
 import TicketComments from '../tickets/TicketComments.jsx';
+import { useUpdateTicketStatusMutation } from '../../../services/ticketService.js';
 
 const TicketList = ({ tickets, isLoading, isError }) => {
   const role = useSelector((state) => state.auth.role);
@@ -11,7 +12,8 @@ const TicketList = ({ tickets, isLoading, isError }) => {
   const ticketList = Array.isArray(tickets) ? tickets : [];
 
   const [selectedTicketId, setSelectedTicketId] = useState(null);
-
+const [updateTicketStatus, { isLoading: isUpdatingStatus }] =
+  useUpdateTicketStatusMutation();
   /*const selectedTicket = ticketList.find(
     (ticket) => ticket.id === selectedTicketId
   );*/
@@ -88,7 +90,66 @@ const TicketList = ({ tickets, isLoading, isError }) => {
                 <h3 className="mb-2 text-sm font-semibold">
                   Ticket Details
                 </h3>
+<div className="mt-4 space-y-3">
+  <label className="block text-sm font-medium" htmlFor={`status-${ticket.id}`}>
+    Status
+  </label>
 
+  <select
+    id={`status-${ticket.id}`}
+    value={ticket.status || 'OPEN'}
+    disabled={isUpdatingStatus}
+    onChange={async (event) => {
+      try {
+        await updateTicketStatus({
+          id: ticket.id,
+          status: event.target.value,
+        }).unwrap();
+      } catch (error) {
+        console.error('Unable to update ticket status:', error);
+      }
+    }}
+    className="w-full rounded-lg border border-stone/70 bg-white p-2 text-sm dark:border-[#55595D] dark:bg-[#25282B]"
+  >
+    <option value="OPEN">Open</option>
+    <option value="IN_PROGRESS">In Progress</option>
+    <option value="RESOLVED">Resolved</option>
+    <option value="CLOSED">Closed</option>
+  </select>
+
+  {isUpdatingStatus && (
+    <p className="text-xs text-charcoal/60 dark:text-ivory/60">
+      Updating status...
+    </p>
+  )}
+
+  <label className="block text-sm font-medium" htmlFor={`priority-${ticket.id}`}>
+    Priority
+  </label>
+
+  <select
+    id={`priority-${ticket.id}`}
+    value={ticket.priority || 'MEDIUM'}
+    disabled
+    className="w-full rounded-lg border border-stone/70 bg-white p-2 text-sm opacity-70 dark:border-[#55595D] dark:bg-[#25282B]"
+  >
+    <option value="LOW">Low</option>
+    <option value="MEDIUM">Medium</option>
+    <option value="HIGH">High</option>
+    <option value="CRITICAL">Critical</option>
+  </select>
+
+  <label className="block text-sm font-medium" htmlFor={`category-${ticket.id}`}>
+    Category
+  </label>
+
+  <input
+    id={`category-${ticket.id}`}
+    value={ticket.category || ''}
+    readOnly
+    className="w-full rounded-lg border border-stone/70 bg-white p-2 text-sm opacity-70 dark:border-[#55595D] dark:bg-[#25282B]"
+  />
+</div>
                 <p className="mb-3 whitespace-pre-wrap break-words text-sm text-charcoal/70 dark:text-ivory/70">
                   {ticket.description || 'No description provided.'}
                 </p>

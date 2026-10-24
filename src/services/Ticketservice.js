@@ -39,6 +39,14 @@ export const ticketApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Ticket'],
     }),
+    updateTicketStatus: builder.mutation({
+  query: ({ id, status }) => ({
+    url: `/tickets/${id}/status`,
+    method: 'PUT',
+    body: { status },
+  }),
+  invalidatesTags: ['Ticket'],
+}),
   }),
 });
 
@@ -48,5 +56,5 @@ export const {
   useGetActiveTicketsQuery,
   useGetAdminTicketsQuery,
   useCreateTicketMutation,
-  useUpdateTicketMutation,
+  useUpdateTicketStatusMutation,
 } = ticketApi;
