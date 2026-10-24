@@ -1,11 +1,20 @@
-
-import TicketCard from './TicketCard';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
+import TicketCard from './TicketCard';
+import TicketComments from '../tickets/TicketComments.jsx';
 
 const TicketList = ({ tickets, isLoading, isError }) => {
   const role = useSelector((state) => state.auth.role);
-const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
+  const token = useSelector((state) => state.auth.token);
+
+  const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
   const ticketList = Array.isArray(tickets) ? tickets : [];
+
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+
+  /*const selectedTicket = ticketList.find(
+    (ticket) => ticket.id === selectedTicketId
+  );*/
 
   return (
     <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-stone/70 bg-white p-3.5 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-5 lg:col-span-2">
@@ -14,11 +23,9 @@ const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
           <p className="text-xs font-medium uppercase tracking-wider text-charcoal/55 dark:text-ivory/55">
             Support overview
           </p>
-
           <h2 className="mt-1 text-lg font-semibold sm:text-xl">
             My Tickets
           </h2>
-
           <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
             {isLoading
               ? 'Loading your requests...'
@@ -41,10 +48,7 @@ const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
         )}
 
         {isError && (
-          <p
-            role="alert"
-            className="py-3 text-sm text-red-600 dark:text-red-400"
-          >
+          <p role="alert" className="py-3 text-sm text-red-600 dark:text-red-400">
             Unable to load tickets. Please try again.
           </p>
         )}
@@ -54,9 +58,7 @@ const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
             <span className="text-2xl text-champagne" aria-hidden="true">
               ◈
             </span>
-
             <p className="mt-2 text-sm font-medium">No tickets yet</p>
-
             <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
               Create a ticket when you need technical support.
             </p>
@@ -64,11 +66,40 @@ const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
         )}
 
         {ticketList.map((ticket) => (
-         <TicketCard
-  key={ticket.id}
-  ticket={ticket}
-  showCreator={showCreator}
-/>
+          <div key={ticket.id}>
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedTicketId((currentId) =>
+                  currentId === ticket.id ? null : ticket.id
+                )
+              }
+              aria-expanded={selectedTicketId === ticket.id}
+              className="block w-full rounded-xl text-left focus:outline-none focus:ring-2 focus:ring-champagne"
+            >
+              <TicketCard
+                ticket={ticket}
+                showCreator={showCreator}
+              />
+            </button>
+
+            {selectedTicketId === ticket.id && (
+              <div className="mt-2 rounded-xl border border-stone/60 p-3 dark:border-[#55595D]">
+                <h3 className="mb-2 text-sm font-semibold">
+                  Ticket Details
+                </h3>
+
+                <p className="mb-3 whitespace-pre-wrap break-words text-sm text-charcoal/70 dark:text-ivory/70">
+                  {ticket.description || 'No description provided.'}
+                </p>
+
+                <TicketComments
+                  ticketId={ticket.id}
+                  token={token}
+                />
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </section>

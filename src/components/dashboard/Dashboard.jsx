@@ -5,8 +5,6 @@ import { logout } from '../../features/auth/authSlice';
 import {
   useGetMyTicketsQuery,
   useGetAllTicketsQuery,
-  useGetActiveTicketsQuery,
-  useGetAdminTicketsQuery,
   useCreateTicketMutation,
 } from '../../services/ticketService';
 import AdminPanel from './AdminPanel';
@@ -292,8 +290,8 @@ const isError = useAllTickets
 
       <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col pt-3 sm:pt-4">
         {activeSection === 'dashboard' && (
-          <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4">
-            <div className="grid shrink-0 grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            <div className="grid shrink-0 grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-4">
               {ticketStats.map((stat) => (
                 <StatCard
                   key={stat.label}
