@@ -1,7 +1,9 @@
 
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useLogoutMutation } from '../../services/authService.js';
 import { logout } from '../../features/auth/authSlice';
+import { api } from '../../services/api.js';
 import {
   useGetMyTicketsQuery,
   useGetAllTicketsQuery,
@@ -21,6 +23,8 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
   const userId = useSelector((state) => state.auth.userId);
   const dispatch = useDispatch();
   const role = useSelector((state) => state.auth.role);
+  const token = useSelector((state) => state.auth.token);
+const [logoutRequest] = useLogoutMutation();
 
  
   
@@ -179,9 +183,21 @@ const isError = useAllTickets
     setFormSuccess('');
   };
 
-  const handleLogout = () => {
+  
+
+const handleLogout = async () => {
+  try {
+    if (token) {
+      await logoutRequest(token).unwrap();
+    }
+  } catch (error) {
+    console.error('Backend logout failed:', error);
+  } finally {
+    dispatch(api.util.resetApiState());
     dispatch(logout());
-  };
+  }
+};
+
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-ivory p-3 text-charcoal dark:bg-[#25282B] dark:text-ivory sm:p-5">

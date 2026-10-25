@@ -19,10 +19,21 @@ export const authApi = api.injectEndpoints({
         responseHandler: 'text',
       }),
     }),
+
+    logout: builder.mutation({
+      query: (token) => ({
+        url: '/auth/logout',
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    }),
   }),
 });
 
 export const {
   useLoginMutation,
   useRegisterMutation,
+  useLogoutMutation,
 } = authApi;

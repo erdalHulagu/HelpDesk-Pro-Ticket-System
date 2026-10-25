@@ -1,5 +1,5 @@
 
-const TicketCard = ({ ticket,showCreator }) => {
+const TicketCard = ({ ticket, showCreator }) => {
   const statusStyles = {
     CLOSED:
       'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
@@ -33,38 +33,21 @@ const TicketCard = ({ ticket,showCreator }) => {
   const priority = ticket.priority || 'LOW';
 
   return (
-    <article className="group relative overflow-hidden rounded-xl border border-stone/60 bg-white/80 p-3.5 shadow-sm transition-all duration-200 hover:border-champagne/70 hover:shadow-md dark:border-[#55595D] dark:bg-[#34383C]">
+    <article className="group relative overflow-hidden rounded-lg border border-stone/60 bg-white/80 px-3 py-2 transition-colors hover:border-champagne/70 dark:border-[#55595D] dark:bg-[#34383C]">
       <div
-        className={`absolute bottom-3 left-0 top-3 w-0.5 rounded-r-full ${
+        className={`absolute bottom-2 left-0 top-2 w-0.5 rounded-r-full ${
           priorityIndicators[priority] || priorityIndicators.LOW
         }`}
       />
 
-      <div className="pl-2">
-        <div className="flex min-w-0 flex-col justify-between gap-2 sm:flex-row sm:items-center">
-          <div className="min-w-0">
-            <h3 className="break-words text-sm font-semibold">
-              {ticket.title}
-            </h3>
-
-          {showCreator && (
-  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-    <span className="font-semibold text-[#96743A] dark:text-[#E6CB99]">
-      Created by: {ticket.createdByUsername || 'Unknown'}
-    </span>
-
-    {ticket.createdByRole && (
-      <span className="rounded-full border border-[#C9A96E]/50 bg-[#F4EAD4] px-2 py-0.5 font-medium text-[#80643A] dark:border-[#C9A96E]/40 dark:bg-[#514633] dark:text-[#E6CB99]">
-        {ticket.createdByRole.replaceAll('_', ' ')}
-      </span>
-    )}
-  </div>
-)}
-
-          </div>
+      <div className="min-w-0 pl-2">
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <h3 className="min-w-0 break-words text-[13px] font-semibold leading-5">
+            {ticket.title || 'Untitled ticket'}
+          </h3>
 
           <span
-            className={`w-fit shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
               statusStyles[status] || statusStyles.OPEN
             }`}
           >
@@ -72,22 +55,34 @@ const TicketCard = ({ ticket,showCreator }) => {
           </span>
         </div>
 
-        <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="text-xs text-charcoal/60 dark:text-ivory/60">
-            Priority:
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
+            {priority} priority
           </span>
 
-          <span
-            className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-              priorityStyles[priority] || priorityStyles.LOW
-            }`}
-          >
-            {priority}
-          </span>
+          {ticket.category && (
+            <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
+              · {ticket.category}
+            </span>
+          )}
         </div>
 
+        {showCreator && (
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
+            <span className="font-medium text-[#96743A] dark:text-[#E6CB99]">
+              {ticket.createdByUsername || 'Unknown'}
+            </span>
+
+            {ticket.createdByRole && (
+              <span className="rounded-full bg-[#F4EAD4] px-1.5 py-0.5 text-[#80643A] dark:bg-[#514633] dark:text-[#E6CB99]">
+                {ticket.createdByRole.replaceAll('_', ' ')}
+              </span>
+            )}
+          </div>
+        )}
+
         {ticket.description && (
-          <p className="mt-2 break-words text-sm leading-5 text-charcoal/70 dark:text-ivory/70">
+          <p className="mt-1 line-clamp-2 break-words text-xs leading-4 text-charcoal/65 dark:text-ivory/65">
             {ticket.description}
           </p>
         )}

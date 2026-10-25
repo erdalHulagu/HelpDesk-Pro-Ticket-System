@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLoginMutation } from '../../services/authService';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../features/auth/authSlice';
+import { api } from '../../services/api.js';
 
 const Login=()=> {
 
@@ -19,6 +20,14 @@ const Login=()=> {
 const result = await login({ email, password }).unwrap();
 
 
+// dispatch(setCredentials({
+//   token: result.token,
+//   userId: result.userId,
+//   username: result.username,
+//   email: result.email,
+//   role: result.role,
+// }));
+dispatch(api.util.resetApiState());
 dispatch(setCredentials({
   token: result.token,
   userId: result.userId,
