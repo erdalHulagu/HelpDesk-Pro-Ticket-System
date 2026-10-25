@@ -84,7 +84,7 @@ const ProfilePage = ({
 
   return (
    <section className="relative z-0 min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-3 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-10">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-widest text-champagne">
             Account
@@ -97,12 +97,12 @@ const ProfilePage = ({
           </p>
         </div>
 
-        <div className="relative z-10 flex shrink-0 items-center gap-2">
+        <div className="relative z-10 flex shrink-10 items-center gap-2">
           {role === 'ADMIN' && (
             <button
               type="button"
               onClick={onAdminPanel}
-              className="relative z-10 cursor-pointer rounded-lg bg-charcoal px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-charcoal/90 dark:bg-champagne dark:text-charcoal dark:hover:bg-[#d2b991]"
+              className="rounded-lg border border-champagne/70 px-3 py-2 text-xs font-semibold transition hover:bg-champagne hover:text-white focus:outline-none focus:ring-2 focus:ring-champagne dark:hover:text-[#25282B] sm:px-4 sm:text-sm"
             >
               Admin Panel
             </button>
@@ -119,7 +119,7 @@ const ProfilePage = ({
       </div>
 
       <div className="mx-auto mt-8 max-w-xl">
-        <div className="flex flex-col items-center rounded-2xl border border-stone/60 bg-ivory/60 p-6 dark:border-[#55595D] dark:bg-[#2B2E31] sm:p-8">
+        <div className="flex flex-col items-center rounded-2xl border border-stone/60 bg-ivory/60 p-6 dark:border-[#55595D] dark:bg-[#2B2E31] sm:p-2">
           <div className="relative">
             <button
               type="button"
@@ -178,7 +178,7 @@ const ProfilePage = ({
             </p>
           )}
 
-          <h3 className="mt-4 break-words text-xl font-semibold">
+          <h3 className="mt-2 break-words text-xl font-semibold">
             {username || 'User'}
           </h3>
 
@@ -186,13 +186,13 @@ const ProfilePage = ({
             Helpdesk User
           </p>
 
-          <div className="mt-7 w-full space-y-4">
-            <div className="rounded-xl border border-stone/60 bg-white p-4 dark:border-[#55595D] dark:bg-[#34383C]">
+          <div className="mt-0 w-full space-y-4">
+            <div className="rounded-xl border border-stone/60 bg-white p-2 dark:border-[#55595D] dark:bg-[#34383C]">
               <p className="text-xs font-medium uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
                 Username
               </p>
 
-              <p className="mt-1 break-words text-sm font-medium">
+              <p className="mt-0 break-words text-xs font-medium">
                 {username || 'Not available'}
               </p>
             </div>
@@ -211,7 +211,7 @@ const ProfilePage = ({
           <button
             type="button"
             onClick={onLogout}
-            className="mt-6 w-full rounded-full border border-red-300 px-5 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
+            className="mt-4 w-full rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
           >
             Sign Out
           </button>

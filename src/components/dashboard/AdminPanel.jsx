@@ -49,14 +49,14 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
         <button
           type="button"
           onClick={onBack}
-          className="shrink-0 rounded-full border border-stone px-4 py-2 text-sm transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D]"
+          className="shrink-0 rounded-full border border-stone p-3 text-sm transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D]"
         >
           Back
         </button>
       </div>
 
-      <div className="mb-4 rounded-xl border border-stone/80 bg-white p-5 dark:border-[#55595D] dark:bg-[#34383C]">
-        <p className="text-sm text-charcoal/60 dark:text-ivory/60">
+      <div className=" mb-4 rounded-xl border border-stone/80 bg-white px-6 py-1 dark:border-[#55595D] dark:bg-[#34383C]">
+        <p className=" text-sm text-charcoal/60 dark:text-ivory/60">
           Total users
         </p>
         <p className="mt-1 text-3xl font-semibold">
@@ -64,8 +64,8 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
         </p>
       </div>
 
-      <section className="min-h-0 flex-1 overflow-auto rounded-xl border border-stone/80 bg-white dark:border-[#55595D] dark:bg-[#34383C]">
-        <div className="border-b border-stone/80 px-5 py-4 dark:border-[#55595D]">
+      <section className="users-scrollbar min-h-0 flex-1 overflow-auto rounded-xl border border-stone/80 bg-white dark:border-[#55595D] dark:bg-[#34383C]">
+        <div className=" border-b border-stone/80 px-5 py-4 dark:border-[#55595D]">
           <h3 className="font-semibold">All Users</h3>
         </div>
 
@@ -86,32 +86,42 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
         )}
 
         {!isLoading && !isError && Array.isArray(users) && users.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead className="bg-ivory/70 text-charcoal/70 dark:bg-[#25282B] dark:text-ivory/70">
+          <div className="">
+            <table className=" w-full min-w-[520px] text-left text-sm">
+
+              <thead className="text-charcoal/70 dark:text-ivory/70">
                 <tr>
-                  <th className="px-5 py-3 font-medium">User</th>
-                  <th className="px-5 py-3 font-medium">Email</th>
-                  <th className="px-5 py-3 font-medium">Role</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="sticky top-0 z-20 bg-ivory px-4 py-3 text-left font-medium dark:bg-[#25282B]">
+                    User
+                  </th>
+                  <th className="sticky top-0 z-20 bg-ivory px-5 py-3 text-left font-medium dark:bg-[#25282B]">
+                    Email
+                  </th>
+                  <th className="sticky top-0 z-20 bg-ivory px-5 py-3 text-left font-medium dark:bg-[#25282B]">
+                    Role
+                  </th>
+                  <th className="sticky top-0 z-20 bg-ivory px-5 py-3 text-left font-medium dark:bg-[#25282B]">
+                    Status
+                  </th>
                 </tr>
               </thead>
+
 
               <tbody>
                 {users.map((user) => (
                   <tr
-  key={user.id}
-  onClick={() => onSelectUser?.(user)}
-  onKeyDown={(event) => {
-    if (event.key === 'Enter') {
-      onSelectUser?.(user);
-    }
-  }}
-  tabIndex={0}
-  role="button"
-  aria-label={`Edit ${user.username || user.email || 'user'}`}
-  className="cursor-pointer border-t border-stone/70 transition hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-champagne dark:border-[#55595D]"
->
+                    key={user.id}
+                    onClick={() => onSelectUser?.(user)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        onSelectUser?.(user);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Edit ${user.username || user.email || 'user'}`}
+                    className="cursor-pointer border-t border-stone/70 transition hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-champagne dark:border-[#55595D]"
+                  >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <UserAvatar user={user} />
