@@ -24,49 +24,50 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
   const dispatch = useDispatch();
   const role = useSelector((state) => state.auth.role);
   const token = useSelector((state) => state.auth.token);
-const [logoutRequest] = useLogoutMutation();
+  const [logoutRequest] = useLogoutMutation();
 
- 
-  
+
+
   const [activeSection, setActiveSection] = useState('dashboard');
   const [selectedAdminUser, setSelectedAdminUser] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
-const { data: profilePhotoData } = useGetProfilePhotoQuery();
+  const { data: profilePhotoData } = useGetProfilePhotoQuery();
 
 
 
-useEffect(() => {
-  setProfilePhotoUrl(
-    typeof profilePhotoData === 'string' ? profilePhotoData : null
-  );
-}, [profilePhotoData]);
+  useEffect(() => {
+    setProfilePhotoUrl(
+      typeof profilePhotoData === 'string' ? profilePhotoData : null
+    );
+  }, [profilePhotoData]);
 
-  
-const isAdmin = role === 'ADMIN';
-const isITManager = role === 'IT_MANAGER';
-const isITSupport = role === 'IT_SUPPORT';
 
-const useAllTickets = isAdmin || isITManager || isITSupport;
+  const isAdmin = role === 'ADMIN';
+  const isITManager = role === 'IT_MANAGER';
+  const isITSupport = role === 'IT_SUPPORT';
 
-const myTicketsQuery = useGetMyTicketsQuery(undefined, {
-  skip: useAllTickets,
-});
+  const useAllTickets = isAdmin || isITManager || isITSupport;
 
-const allTicketsQuery = useGetAllTicketsQuery(undefined, {
-  skip: !useAllTickets,
-});
+  const myTicketsQuery = useGetMyTicketsQuery(undefined, {
+    skip: useAllTickets,
+  });
 
-const tickets = useAllTickets
-  ? allTicketsQuery.data
-  : myTicketsQuery.data;
+  const allTicketsQuery = useGetAllTicketsQuery(undefined, {
+    skip: !useAllTickets,
+  });
 
-const isLoading = useAllTickets
-  ? allTicketsQuery.isLoading
-  : myTicketsQuery.isLoading;
+  const tickets = useAllTickets
+    ? allTicketsQuery.data
+    : myTicketsQuery.data;
 
-const isError = useAllTickets
-  ? allTicketsQuery.isError
-  : myTicketsQuery.isError;
+  const isLoading = useAllTickets
+    ? allTicketsQuery.isLoading
+    : myTicketsQuery.isLoading;
+
+  const isError = useAllTickets
+    ? allTicketsQuery.isError
+    : myTicketsQuery.isError;
 
 
   const [createTicket, { isLoading: isCreating }] =
@@ -82,41 +83,50 @@ const isError = useAllTickets
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
-  const ticketList = Array.isArray(tickets) ? tickets : [];
+  const allTickets = Array.isArray(tickets) ? tickets : [];
 
   const ticketStats = [
     {
-      label: 'Total Tickets',
-      value: ticketList.length,
-      marker: '◈',
-      accent: 'bg-champagne/15 text-champagne',
+      label: 'Total',
+      value: allTickets.length,
+      status: 'ALL',
+      marker: '∑',
+      accent: 'bg-stone/20 text-charcoal dark:bg-[#55595D] dark:text-ivory',
     },
     {
       label: 'Open',
-      value: ticketList.filter((ticket) => ticket.status === 'OPEN').length,
+      value: allTickets.filter((ticket) => ticket.status === 'OPEN').length,
+      status: 'OPEN',
       marker: '○',
-      accent:
-        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+      accent: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
     },
     {
       label: 'In Progress',
-      value: ticketList.filter(
-        (ticket) => ticket.status === 'IN_PROGRESS'
-      ).length,
-      marker: '↗',
-      accent:
-        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+      value: allTickets.filter((ticket) => ticket.status === 'IN_PROGRESS').length,
+      status: 'IN_PROGRESS',
+      marker: '↻',
+      accent: 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
     },
     {
       label: 'Resolved',
-      value: ticketList.filter(
-        (ticket) => ticket.status === 'RESOLVED'
-      ).length,
+      value: allTickets.filter((ticket) => ticket.status === 'RESOLVED').length,
+      status: 'RESOLVED',
       marker: '✓',
-      accent:
-        'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+      accent: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    },
+    {
+      label: 'Closed',
+      value: allTickets.filter((ticket) => ticket.status === 'CLOSED').length,
+      status: 'CLOSED',
+      marker: '×',
+      accent: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
     },
   ];
+
+  const filteredTickets =
+    selectedStatus === 'ALL'
+      ? allTickets
+      : allTickets.filter((ticket) => ticket.status === selectedStatus);
 
   const handleFormChange = (event) => {
     const { name, value } = event.target;
@@ -166,15 +176,15 @@ const isError = useAllTickets
 
       setActiveSection('dashboard');
     } catch (error) {
-  console.error('Create ticket error:', error);
+      console.error('Create ticket error:', error);
 
-  setFormError(
-    error?.data?.message ||
-      error?.error ||
-      (typeof error?.data === 'string' ? error.data : null) ||
-      'Unable to create ticket. Please try again.'
-  );
-}
+      setFormError(
+        error?.data?.message ||
+        error?.error ||
+        (typeof error?.data === 'string' ? error.data : null) ||
+        'Unable to create ticket. Please try again.'
+      );
+    }
   };
 
   const handleBackToDashboard = () => {
@@ -183,20 +193,20 @@ const isError = useAllTickets
     setFormSuccess('');
   };
 
-  
 
-const handleLogout = async () => {
-  try {
-    if (token) {
-      await logoutRequest(token).unwrap();
+
+  const handleLogout = async () => {
+    try {
+      if (token) {
+        await logoutRequest(token).unwrap();
+      }
+    } catch (error) {
+      console.error('Backend logout failed:', error);
+    } finally {
+      dispatch(api.util.resetApiState());
+      dispatch(logout());
     }
-  } catch (error) {
-    console.error('Backend logout failed:', error);
-  } finally {
-    dispatch(api.util.resetApiState());
-    dispatch(logout());
-  }
-};
+  };
 
 
   return (
@@ -307,21 +317,23 @@ const handleLogout = async () => {
       <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col pt-3 sm:pt-4">
         {activeSection === 'dashboard' && (
           <div className="flex min-h-0 flex-1 flex-col gap-2">
-            <div className="grid shrink-0 grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-4">
+            <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
               {ticketStats.map((stat) => (
                 <StatCard
-                  key={stat.label}
+                  key={stat.status}
                   label={stat.label}
                   value={isLoading || isError ? '—' : stat.value}
                   marker={stat.marker}
                   accent={stat.accent}
+                  active={selectedStatus === stat.status}
+                  onClick={() => setSelectedStatus(stat.status)}
                 />
               ))}
             </div>
 
             <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-3 lg:grid-rows-1 lg:gap-4">
               <TicketList
-                tickets={tickets}
+                tickets={filteredTickets}
                 isLoading={isLoading}
                 isError={isError}
               />
@@ -355,23 +367,23 @@ const handleLogout = async () => {
           />
         )}
 
-        
-{activeSection === 'admin' && (
-  <AdminPanel
-    onBack={() => setActiveSection('profile')}
-    onSelectUser={(user) => {
-      setSelectedAdminUser(user);
-      setActiveSection('admin-user');
-    }}
-  />
-)}
-{activeSection === 'admin-user' && (
-  <AdminUserDetails
-    user={selectedAdminUser}
-    currentUserId={userId}
-    onBack={() => setActiveSection('admin')}
-  />
-)}
+
+        {activeSection === 'admin' && (
+          <AdminPanel
+            onBack={() => setActiveSection('profile')}
+            onSelectUser={(user) => {
+              setSelectedAdminUser(user);
+              setActiveSection('admin-user');
+            }}
+          />
+        )}
+        {activeSection === 'admin-user' && (
+          <AdminUserDetails
+            user={selectedAdminUser}
+            currentUserId={userId}
+            onBack={() => setActiveSection('admin')}
+          />
+        )}
       </section>
     </main>
   );

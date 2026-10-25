@@ -1,5 +1,5 @@
 
-const TicketCard = ({ ticket, showCreator }) => {
+const TicketCard = ({ ticket, showCreator, }) => {
   const statusStyles = {
     CLOSED:
       'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
@@ -55,17 +55,21 @@ const TicketCard = ({ ticket, showCreator }) => {
           </span>
         </div>
 
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
-            {priority} priority
-          </span>
+        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+  <span
+    className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+      priorityStyles[priority] || priorityStyles.LOW
+    }`}
+  >
+    {priority}
+  </span>
 
-          {ticket.category && (
-            <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
-              · {ticket.category}
-            </span>
-          )}
-        </div>
+  {ticket.category && (
+    <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
+      {ticket.category}
+    </span>
+  )}
+</div>
 
         {showCreator && (
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">

@@ -83,7 +83,7 @@ const ProfilePage = ({
   };
 
   return (
-    <section className="ticket-scrollbar relative z-0 min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
+   <section className="relative z-0 min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-3 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-widest text-champagne">
