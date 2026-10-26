@@ -61,8 +61,8 @@ const AdminUserDetails = ({ user, currentUserId, onBack }) => {
   };
 
   return (
-    <div className="mx-auto h-full w-full max-w-3xl overflow-auto p-4 sm:p-6">
-      <div className="mb-6 flex items-center justify-between gap-3">
+    <div className="  mx-auto h-full w-full max-w-3xl overflow-auto p-4 sm:p-6">
+      <div className=" mb-6 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-widest text-champagne">
             Administration

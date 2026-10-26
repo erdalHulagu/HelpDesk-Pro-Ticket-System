@@ -73,12 +73,12 @@ const TicketCard = ({ ticket, showCreator, }) => {
 
         {showCreator && (
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-            <span className="font-medium text-[#96743A] dark:text-[#E6CB99]">
+            <span className="font-medium text-[#96743A] dark:text-[#fcfdfb]">
               {ticket.createdByUsername || 'Unknown'}
             </span>
 
             {ticket.createdByRole && (
-              <span className="rounded-full bg-[#F4EAD4] px-1.5 py-0.5 text-[#80643A] dark:bg-[#514633] dark:text-[#E6CB99]">
+              <span className="rounded-full bg-[#F4EAD4] px-1.5 py-0.5 text-[#80643A] dark:bg-[#524a3cce] dark:text-[#fcfdfb]">
                 {ticket.createdByRole.replaceAll('_', ' ')}
               </span>
             )}

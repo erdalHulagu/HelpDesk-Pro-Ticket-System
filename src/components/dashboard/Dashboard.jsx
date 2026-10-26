@@ -217,7 +217,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             Helpdesk Portal
           </p>
 
-          <h1 className="mt-1.5 break-words text-lg font-semibold tracking-tight sm:text-2xl">
+          <h1 className="mt-1 break-words text-m font-semibold tracking-tighter ">
             Welcome back, {username || 'User'}!
           </h1>
 
@@ -226,12 +226,12 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-2">
           <button
             type="button"
             onClick={() => setActiveSection('profile')}
             aria-label="Open profile"
-            className="group flex items-center gap-2 rounded-lg border border-stone/70 bg-white/70 p-1.5 pr-3 transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] sm:gap-2.5 sm:p-2 sm:pr-4"
+            className="group flex items-center mr-8 gap-2 rounded-lg border border-stone/70 bg-white/70 p-2 pr-3 transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] sm:gap-2.5 sm:p-2 sm:pr-4"
           >
             <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-champagne/50 bg-champagne/10 text-champagne sm:h-9 sm:w-9">
               {profilePhotoUrl ? (
@@ -307,7 +307,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           <button
             type="button"
             onClick={handleLogout}
-            className="rounded-lg border border-champagne/70 px-3 py-2 text-xs font-semibold transition hover:bg-champagne hover:text-white focus:outline-none focus:ring-2 focus:ring-champagne dark:hover:text-[#25282B] sm:px-4 sm:text-sm"
+            className="rounded-lg border border-champagne/70 px-1 py-1 text-xs font-semibold transition hover:bg-champagne hover:text-white focus:outline-none focus:ring-2 focus:ring-champagne dark:hover:text-[#25282B] sm:px-4 sm:text-sm"
           >
             Sign Out
           </button>
