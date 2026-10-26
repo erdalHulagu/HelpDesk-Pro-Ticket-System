@@ -182,7 +182,7 @@ const ProfilePage = ({
             {username || 'User'}
           </h3>
 
-          <p className="mt-1 text-sm text-charcoal/60 dark:text-ivory/60">
+          <p className="upper mt-1 mb-2 text-sm text-charcoal/60 dark:text-ivory/60">
             Helpdesk User
           </p>
 

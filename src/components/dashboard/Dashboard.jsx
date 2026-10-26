@@ -17,6 +17,7 @@ import TicketList from './widgets/TicketList';
 import QuickActionCard from './widgets/QuickActionCard';
 import CreateTicketForm from './widgets/CreateTicketForm';
 import StatCard from './widgets/StatCard';
+import LiveClock from '../LiveClock';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
   const { username, email } = useSelector((state) => state.auth);
@@ -227,6 +228,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-2">
+          <LiveClock />
           <button
             type="button"
             onClick={() => setActiveSection('profile')}

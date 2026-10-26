@@ -245,7 +245,7 @@ const TicketComments = ({ ticketId, token }) => {
 
               {attachments.length > 0 && (
                 <div className="mt-3 space-y-3">
-                  <p className="text-xs font-semibold text-charcoal/70 dark:text-ivory/70">
+                  <p className="text-xs font-thin text-charcoal/70 dark:text-ivory/70">
                     Attachments ({attachments.length})
                   </p>
 
@@ -287,7 +287,7 @@ const TicketComments = ({ ticketId, token }) => {
                           <button
                             type="button"
                             onClick={() => handleDownload(attachment)}
-                            className="shrink-0 rounded-lg border border-stone/60 px-3 py-2 text-sm hover:bg-stone/10 dark:border-[#55595D]"
+                            className="shrink-0 rounded-lg border border-stone/60 px-2 py-1 text-sm hover:bg-stone/10 dark:border-[#55595D]"
                           >
                             Download
                           </button>
@@ -317,7 +317,7 @@ const TicketComments = ({ ticketId, token }) => {
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <label
           htmlFor={`comment-${ticketId}`}
-          className="block text-sm font-medium"
+          className="block text-sm font-thin"
         >
           Add a comment
         </label>
@@ -351,9 +351,9 @@ const TicketComments = ({ ticketId, token }) => {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={submitting}
-            className="inline-flex items-center gap-2 rounded-lg border border-stone/70 px-3 py-2 text-sm transition hover:bg-stone/10 disabled:opacity-50 dark:border-[#55595D]"
+            className="inline-flex items-center gap-2 rounded-lg border border-stone/70 px-1 py-0.5 text-xs font-thin transition hover:bg-stone/10 disabled:opacity-50 dark:border-[#55595D]"
           >
-            <span aria-hidden="true">📎</span>
+            <span aria-hidden="true ">📎</span>
             Attach photos or files
           </button>
 
