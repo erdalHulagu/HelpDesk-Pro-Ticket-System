@@ -32,12 +32,24 @@ const TicketCard = ({ ticket, showCreator, }) => {
   const status = ticket.status || 'OPEN';
   const priority = ticket.priority || 'LOW';
 
+  const slaDueAt = ticket.slaDueAt
+    ? new Date(ticket.slaDueAt)
+    : null;
+
+  const isResolved =
+    ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+
+  const isOverdue =
+    !isResolved &&
+    slaDueAt &&
+    !Number.isNaN(slaDueAt.getTime()) &&
+    slaDueAt.getTime() < Date.now();
+
   return (
     <article className="group relative overflow-hidden rounded-lg border border-stone/60 bg-white/80 px-3 py-2 transition-colors hover:border-champagne/70 dark:border-[#55595D] dark:bg-[#34383C]">
       <div
-        className={`absolute bottom-2 left-0 top-2 w-0.5 rounded-r-full ${
-          priorityIndicators[priority] || priorityIndicators.LOW
-        }`}
+        className={`absolute bottom-2 left-0 top-2 w-0.5 rounded-r-full ${priorityIndicators[priority] || priorityIndicators.LOW
+          }`}
       />
 
       <div className="min-w-0 pl-2">
@@ -47,29 +59,57 @@ const TicketCard = ({ ticket, showCreator, }) => {
           </h3>
 
           <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-              statusStyles[status] || statusStyles.OPEN
-            }`}
+            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[status] || statusStyles.OPEN
+              }`}
           >
             {status.replaceAll('_', ' ')}
           </span>
         </div>
 
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
-  <span
-    className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-      priorityStyles[priority] || priorityStyles.LOW
-    }`}
-  >
-    {priority}
-  </span>
+          <span
+            className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${priorityStyles[priority] || priorityStyles.LOW
+              }`}
+          >
+            {priority}
+          </span>
 
-  {ticket.category && (
-    <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
-      {ticket.category}
-    </span>
-  )}
-</div>
+          {ticket.category && (
+            <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
+              {ticket.category}
+            </span>
+          )}
+        </div>
+        {slaDueAt && !Number.isNaN(slaDueAt.getTime()) && (
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+            <span className="text-charcoal/60 dark:text-ivory/60">
+              SLA due:
+            </span>
+
+            <span className="font-medium text-charcoal dark:text-ivory">
+              {slaDueAt.toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+
+            {isResolved ? (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                Resolved
+              </span>
+            ) : isOverdue ? (
+              <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">
+                Overdue
+              </span>
+            ) : (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+                Within SLA
+              </span>
+            )}
+          </div>
+        )}
 
         {showCreator && (
           <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">

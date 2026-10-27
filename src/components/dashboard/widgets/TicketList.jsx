@@ -48,6 +48,22 @@ const TicketList = ({ tickets, isLoading, isError }) => {
   const labelClassName =
     'text-xs font-medium text-charcoal/65 dark:text-ivory/65';
 
+  const slaDueAt = selectedTicket?.slaDueAt
+    ? new Date(selectedTicket.slaDueAt)
+    : null;
+
+  const hasValidSlaDate =
+    slaDueAt && !Number.isNaN(slaDueAt.getTime());
+
+  const isResolved = ['RESOLVED', 'CLOSED'].includes(
+    selectedTicket?.status
+  );
+
+  const isOverdue =
+    hasValidSlaDate &&
+    !isResolved &&
+    slaDueAt.getTime() < Date.now();
+
   return (
     <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-stone/70 bg-white p-3 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-4 lg:col-span-2">
       <header className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-stone/60 pb-3 dark:border-[#55595D]">
@@ -210,6 +226,48 @@ const TicketList = ({ tickets, isLoading, isError }) => {
                       className={selectClassName}
                     />
                   </div>
+                </div>
+
+                {/* SLA Information */}
+                <div className="rounded-lg border border-stone/60 px-3 py-3 dark:border-[#55595D]">
+                  <p className={labelClassName}>
+                    Service Level Agreement
+                  </p>
+
+                  {hasValidSlaDate ? (
+                    <>
+                      <p className="mt-1 text-sm font-medium text-charcoal dark:text-ivory">
+                        SLA due:{' '}
+                        {slaDueAt.toLocaleString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+
+                      <span
+                        className={`mt-2 inline-block rounded-full px-2 py-1 text-xs font-semibold ${
+                          isResolved
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                            : isOverdue
+                              ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        }`}
+                      >
+                        {isResolved
+                          ? 'Resolved'
+                          : isOverdue
+                            ? 'Overdue'
+                            : 'Within SLA'}
+                      </span>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-sm text-charcoal/60 dark:text-ivory/60">
+                      SLA deadline not available.
+                    </p>
+                  )}
                 </div>
 
                 {showCreator && (
