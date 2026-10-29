@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLogoutMutation } from '../../services/authService.js';
+import NotificationBell from "./NotificationBell.jsx";
 import { logout } from '../../features/auth/authSlice';
 import { api } from '../../services/api.js';
 import {
@@ -228,13 +229,16 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-2">
+          <NotificationBell darkMode={darkMode}/>
           <LiveClock />
+          
           <button
             type="button"
             onClick={() => setActiveSection('profile')}
             aria-label="Open profile"
             className="group flex items-center mr-8 gap-2 rounded-lg border border-stone/70 bg-white/70 p-2 pr-3 transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] sm:gap-2.5 sm:p-2 sm:pr-4"
           >
+            
             <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-champagne/50 bg-champagne/10 text-champagne sm:h-9 sm:w-9">
               {profilePhotoUrl ? (
                 <img
@@ -313,6 +317,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           >
             Sign Out
           </button>
+          
         </div>
       </header>
 

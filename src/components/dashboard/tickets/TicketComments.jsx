@@ -244,7 +244,7 @@ const TicketComments = ({ ticketId, token }) => {
               setError("");
               setSuccess("");
             }}
-            className="shrink-0 rounded-md bg-champagne px-2 py-1 text-xs font-thin text-charcoal transition hover:opacity-90">
+            className="shrink-0 rounded-md bg-champagne px-2 py-1 text-[30px]  text-charcoal transition hover:opacity-90">
             View Comments
           </button>
         </div>
@@ -256,7 +256,7 @@ const TicketComments = ({ ticketId, token }) => {
         )}
 
         {!loading && comments.length === 0 && !error && (
-          <p className="mt-3 text-sm text-charcoal/60 dark:text-ivory/60">
+          <p className="mt-3 text-sm text-charcoal/60 dark:text-ivory/60 ">
             No comments yet.
           </p>
         )}
