@@ -21,6 +21,10 @@ export const userApi = api.injectEndpoints({
       }),
       invalidatesTags: ['User'],
     }),
+
+    getITSupportUsers: builder.query({
+      query: () => '/users/it-support',
+    }),
   }),
 });
 
@@ -28,4 +32,5 @@ export const {
   useGetAllUsersQuery,
   useGetUserByIdQuery,
   useUpdateUserMutation,
+  useGetITSupportUsersQuery,
 } = userApi;

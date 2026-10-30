@@ -31,7 +31,7 @@ export const ticketApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Ticket'],
     }),
-        updateTicket: builder.mutation({
+    updateTicket: builder.mutation({
       query: ({ id, ...ticketData }) => ({
         url: `/tickets/${id}`,
         method: 'PUT',
@@ -40,13 +40,22 @@ export const ticketApi = api.injectEndpoints({
       invalidatesTags: ['Ticket'],
     }),
     updateTicketStatus: builder.mutation({
-  query: ({ id, status }) => ({
-    url: `/tickets/${id}/status`,
-    method: 'PUT',
-    body: { status },
-  }),
-  invalidatesTags: ['Ticket'],
-}),
+      query: ({ id, status }) => ({
+        url: `/tickets/${id}/status`,
+        method: 'PUT',
+        body: { status },
+      }),
+      invalidatesTags: ['Ticket'],
+    }),
+    
+    assignTicket: builder.mutation({
+      query: ({ id, assignedToId }) => ({
+        url: `/tickets/${id}/assign`,
+        method: 'PUT',
+        body: { assignedToId },
+      }),
+      invalidatesTags: ['Ticket'],
+    }),
   }),
 });
 
@@ -57,4 +66,5 @@ export const {
   useGetAdminTicketsQuery,
   useCreateTicketMutation,
   useUpdateTicketStatusMutation,
+  useAssignTicketMutation,
 } = ticketApi;

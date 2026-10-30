@@ -1,20 +1,41 @@
-
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+
 import TicketCard from './TicketCard';
 import TicketComments from '../tickets/TicketComments.jsx';
-import { useUpdateTicketStatusMutation } from '../../../services/ticketService.js';
+
+import {
+  useUpdateTicketStatusMutation,
+  useAssignTicketMutation,
+} from '../../../services/ticketService.js';
+
+import { useGetITSupportUsersQuery } from '../../../services/userService.js';
 
 const TicketList = ({ tickets, isLoading, isError }) => {
   const role = useSelector((state) => state.auth.role);
   const token = useSelector((state) => state.auth.token);
 
   const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
+  const canAssign = role === 'ADMIN' || role === 'IT_MANAGER';
+
   const ticketList = Array.isArray(tickets) ? tickets : [];
 
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [assignedToId, setAssignedToId] = useState('');
+
   const [updateTicketStatus, { isLoading: isUpdatingStatus }] =
     useUpdateTicketStatusMutation();
+
+  const [assignTicket, { isLoading: isAssigning }] =
+    useAssignTicketMutation();
+
+  const {
+    data: itSupportUsers = [],
+    isLoading: isLoadingITSupport,
+    isError: isITSupportError,
+  } = useGetITSupportUsersQuery(undefined, {
+    skip: !canAssign,
+  });
 
   const selectedTicket = ticketList.find(
     (ticket) => ticket.id === selectedTicketId
@@ -29,6 +50,14 @@ const TicketList = ({ tickets, isLoading, isError }) => {
     }
   }, [selectedTicketId, ticketList]);
 
+  useEffect(() => {
+    setAssignedToId(
+      selectedTicket?.assignedToId
+        ? String(selectedTicket.assignedToId)
+        : ''
+    );
+  }, [selectedTicket?.id, selectedTicket?.assignedToId]);
+
   const handleStatusChange = async (event) => {
     if (!selectedTicket) return;
 
@@ -39,6 +68,19 @@ const TicketList = ({ tickets, isLoading, isError }) => {
       }).unwrap();
     } catch (error) {
       console.error('Unable to update ticket status:', error);
+    }
+  };
+
+  const handleAssignTicket = async () => {
+    if (!selectedTicket || !assignedToId) return;
+
+    try {
+      await assignTicket({
+        id: selectedTicket.id,
+        assignedToId: Number(assignedToId),
+      }).unwrap();
+    } catch (error) {
+      console.error('Unable to assign ticket:', error);
     }
   };
 
@@ -228,7 +270,6 @@ const TicketList = ({ tickets, isLoading, isError }) => {
                   </div>
                 </div>
 
-                {/* SLA Information */}
                 <div className="rounded-lg border border-stone/60 px-3 py-3 dark:border-[#55595D]">
                   <p className={labelClassName}>
                     Service Level Agreement
@@ -280,6 +321,67 @@ const TicketList = ({ tickets, isLoading, isError }) => {
                       <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
                         {selectedTicket.createdByRole.replaceAll('_', ' ')}
                       </p>
+                    )}
+                  </div>
+                )}
+
+                {canAssign && (
+                  <div className="rounded-lg border border-stone/60 p-3 dark:border-[#55595D]">
+                    <p className={labelClassName}>
+                      Assign ticket to IT Support
+                    </p>
+
+                    {isLoadingITSupport ? (
+                      <p className="mt-2 text-sm text-charcoal/60 dark:text-ivory/60">
+                        Loading support users...
+                      </p>
+                    ) : isITSupportError ? (
+                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                        Unable to load IT Support users.
+                      </p>
+                    ) : (
+                      <>
+                        <select
+                          value={assignedToId}
+                          onChange={(event) =>
+                            setAssignedToId(event.target.value)
+                          }
+                          disabled={isAssigning}
+                          className={selectClassName}
+                        >
+                          <option value="">
+                            Select an IT Support user
+                          </option>
+
+                          {itSupportUsers.map((supportUser) => (
+                            <option
+                              key={supportUser.id}
+                              value={supportUser.id}
+                            >
+                              {supportUser.username}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={handleAssignTicket}
+                          disabled={
+                            !assignedToId ||
+                            isAssigning ||
+                            String(selectedTicket.assignedToId || '') === assignedToId
+                          }
+                          className="mt-3 w-full rounded-lg bg-champagne px-4 py-2 text-sm font-semibold text-charcoal transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {isAssigning ? 'Assigning...' : 'Assign Ticket'}
+                        </button>
+
+                        {itSupportUsers.length === 0 && (
+                          <p className="mt-2 text-xs text-charcoal/60 dark:text-ivory/60">
+                            No active IT Support users found.
+                          </p>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
