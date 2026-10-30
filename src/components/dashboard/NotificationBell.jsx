@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from 'react';
 import {
   useGetNotificationsQuery,
@@ -9,7 +8,7 @@ import {
   useDeleteAllNotificationsMutation,
 } from '../../services/notificationService.js';
 
-function NotificationBell({ darkMode = false }) {
+function NotificationBell({ darkMode = false, onOpenTicket }) {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef(null);
 
@@ -100,6 +99,13 @@ function NotificationBell({ darkMode = false }) {
     }
   }
 
+  function handleNotificationClick(notification) {
+    if (!notification.ticketId || !onOpenTicket) return;
+
+    onOpenTicket(notification.ticketId);
+    setIsOpen(false);
+  }
+
   function getIcon(type) {
     const value = (type || '').toUpperCase();
 
@@ -150,10 +156,11 @@ function NotificationBell({ darkMode = false }) {
         }}
         aria-label={`Notifications: ${unreadCount} unread`}
         aria-expanded={isOpen}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-champagne ${darkMode
-          ? 'border-[#55595D] bg-[#34383C] hover:border-champagne'
-          : 'border-stone/70 bg-white/70 hover:border-champagne'
-          }`}
+        className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-champagne ${
+          darkMode
+            ? 'border-[#55595D] bg-[#34383C] hover:border-champagne'
+            : 'border-stone/70 bg-white/70 hover:border-champagne'
+        }`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -247,25 +254,37 @@ function NotificationBell({ darkMode = false }) {
               notificationList.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`flex gap-3 border-b border-stone/30 p-3 last:border-b-0 dark:border-[#55595D] ${!notification.read
-                    ? darkMode
-                      ? 'bg-champagne/10'
-                      : 'bg-amber-50'
-                    : ''
-                    }`}
+                  className={`flex gap-3 border-b border-stone/30 p-3 last:border-b-0 dark:border-[#55595D] ${
+                    !notification.read
+                      ? darkMode
+                        ? 'bg-champagne/10'
+                        : 'bg-amber-50'
+                      : ''
+                  }`}
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-champagne/15 text-sm">
                     {getIcon(notification.type)}
                   </span>
 
-                  <div className="min-w-0 flex-1 users-scrollbar ">
-                    <p className="break-words text-sm font-semibold">
-                      {notification.title || 'Notification'}
-                    </p>
+                  <div className="min-w-0 flex-1 users-scrollbar">
+                    <button
+                      type="button"
+                      onClick={() => handleNotificationClick(notification)}
+                      disabled={!notification.ticketId}
+                      className={`block w-full min-w-0 text-left ${
+                        notification.ticketId
+                          ? 'cursor-pointer hover:opacity-75'
+                          : 'cursor-default'
+                      }`}
+                    >
+                      <p className="break-words text-sm font-semibold">
+                        {notification.title || 'Notification'}
+                      </p>
 
-                    <p className={`mt-1 break-words text-xs ${mutedText}`}>
-                      {notification.message}
-                    </p>
+                      <p className={`mt-1 break-words text-xs ${mutedText}`}>
+                        {notification.message}
+                      </p>
+                    </button>
 
                     <p className={`mt-2 text-[10px] ${mutedText}`}>
                       {formatDate(notification.createdAt)}
@@ -285,14 +304,17 @@ function NotificationBell({ darkMode = false }) {
 
                       <button
                         type="button"
-                        onClick={() => handleDeleteNotification(notification.id)}
+                        onClick={() =>
+                          handleDeleteNotification(notification.id)
+                        }
                         disabled={isDeletingOne || isDeletingAll}
                         aria-label="Delete notification"
                         title="Delete notification"
-                        className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md transition disabled:opacity-50 ${darkMode
-                          ? 'text-ivory/50 hover:bg-red-500/10 hover:text-red-400'
-                          : 'text-charcoal/40 hover:bg-red-50 hover:text-red-500'
-                          }`}
+                        className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md transition disabled:opacity-50 ${
+                          darkMode
+                            ? 'text-ivory/50 hover:bg-red-500/10 hover:text-red-400'
+                            : 'text-charcoal/40 hover:bg-red-50 hover:text-red-500'
+                        }`}
                       >
                         <svg
                           viewBox="0 0 24 24"

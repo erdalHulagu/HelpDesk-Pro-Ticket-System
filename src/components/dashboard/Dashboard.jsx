@@ -31,6 +31,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
 
 
   const [activeSection, setActiveSection] = useState('dashboard');
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [selectedAdminUser, setSelectedAdminUser] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
@@ -195,7 +196,13 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
     setFormSuccess('');
   };
 
+  const handleOpenNotificationTicket = (ticketId) => {
+    if (!ticketId) return;
 
+    setSelectedTicketId(ticketId);
+    setSelectedStatus('ALL');
+    setActiveSection('dashboard');
+  };
 
   const handleLogout = async () => {
     try {
@@ -229,16 +236,21 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-2">
-          <NotificationBell darkMode={darkMode}/>
+          <NotificationBell
+            darkMode={darkMode}
+            onOpenTicket={handleOpenNotificationTicket}
+          />
+
+
           <LiveClock />
-          
+
           <button
             type="button"
             onClick={() => setActiveSection('profile')}
             aria-label="Open profile"
             className="group flex items-center mr-8 gap-2 rounded-lg border border-stone/70 bg-white/70 p-2 pr-3 transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] sm:gap-2.5 sm:p-2 sm:pr-4"
           >
-            
+
             <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-champagne/50 bg-champagne/10 text-champagne sm:h-9 sm:w-9">
               {profilePhotoUrl ? (
                 <img
@@ -317,7 +329,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           >
             Sign Out
           </button>
-          
+
         </div>
       </header>
 
@@ -343,6 +355,8 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 tickets={filteredTickets}
                 isLoading={isLoading}
                 isError={isError}
+                selectedTicketId={selectedTicketId}
+                onTicketSelectionHandled={() => setSelectedTicketId(null)}
               />
 
               <QuickActionCard

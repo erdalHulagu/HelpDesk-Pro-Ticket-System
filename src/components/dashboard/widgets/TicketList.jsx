@@ -11,7 +11,11 @@ import {
 
 import { useGetITSupportUsersQuery } from '../../../services/userService.js';
 
-const TicketList = ({ tickets, isLoading, isError }) => {
+const TicketList = ({ tickets,
+  isLoading,
+  isError,
+  selectedTicketId: externalSelectedTicketId,
+  onTicketSelectionHandled }) => {
   const role = useSelector((state) => state.auth.role);
   const token = useSelector((state) => state.auth.token);
 
@@ -41,6 +45,24 @@ const TicketList = ({ tickets, isLoading, isError }) => {
     (ticket) => ticket.id === selectedTicketId
   );
 
+useEffect(() => {
+  if (externalSelectedTicketId == null) return;
+
+  const targetTicket = ticketList.find(
+    (ticket) =>
+      String(ticket.id) === String(externalSelectedTicketId)
+  );
+
+  if (targetTicket) {
+    setSelectedTicketId(targetTicket.id);
+    onTicketSelectionHandled?.();
+  }
+}, [
+  externalSelectedTicketId,
+  ticketList,
+  onTicketSelectionHandled,
+]);
+
   useEffect(() => {
     if (
       selectedTicketId !== null &&
@@ -57,6 +79,19 @@ const TicketList = ({ tickets, isLoading, isError }) => {
         : ''
     );
   }, [selectedTicket?.id, selectedTicket?.assignedToId]);
+
+  useEffect(() => {
+  if (externalSelectedTicketId != null) return;
+
+  if (
+    selectedTicketId !== null &&
+    !ticketList.some(
+      (ticket) => String(ticket.id) === String(selectedTicketId)
+    )
+  ) {
+    setSelectedTicketId(null);
+  }
+}, [selectedTicketId, ticketList, externalSelectedTicketId]);
 
   const handleStatusChange = async (event) => {
     if (!selectedTicket) return;
@@ -119,9 +154,8 @@ const TicketList = ({ tickets, isLoading, isError }) => {
           <p className="mt-0.5 text-xs text-charcoal/60 dark:text-ivory/60">
             {isLoading
               ? 'Loading tickets...'
-              : `${ticketList.length} ${
-                  ticketList.length === 1 ? 'ticket' : 'tickets'
-                }`}
+              : `${ticketList.length} ${ticketList.length === 1 ? 'ticket' : 'tickets'
+              }`}
           </p>
         </div>
 
@@ -167,11 +201,10 @@ const TicketList = ({ tickets, isLoading, isError }) => {
                   type="button"
                   onClick={() => setSelectedTicketId(ticket.id)}
                   aria-pressed={isSelected}
-                  className={`block w-full rounded-xl text-left outline-none transition focus-visible:ring-2 focus-visible:ring-champagne ${
-                    isSelected
+                  className={`block w-full rounded-xl text-left outline-none transition focus-visible:ring-2 focus-visible:ring-champagne ${isSelected
                       ? 'rounded-xl ring-2 ring-champagne/70'
                       : 'hover:opacity-90'
-                  }`}
+                    }`}
                 >
                   <TicketCard
                     ticket={ticket}
@@ -289,13 +322,12 @@ const TicketList = ({ tickets, isLoading, isError }) => {
                       </p>
 
                       <span
-                        className={`mt-2 inline-block rounded-full px-2 py-1 text-xs font-semibold ${
-                          isResolved
+                        className={`mt-2 inline-block rounded-full px-2 py-1 text-xs font-semibold ${isResolved
                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
                             : isOverdue
                               ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
                               : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                        }`}
+                          }`}
                       >
                         {isResolved
                           ? 'Resolved'
