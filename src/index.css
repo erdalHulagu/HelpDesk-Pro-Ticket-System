@@ -85,3 +85,26 @@ button {
 .users-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #9b896c;
 }
+/* Slim scrollbar for Notifications */
+.notification-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #c5a880 transparent;
+}
+
+.notification-scrollbar::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notification-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #c5a880;
+  border-radius: 999px;
+}
+
+.notification-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #ad9065;
+}

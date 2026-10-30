@@ -2,20 +2,21 @@ import { api } from './api';
 
 export const notificationApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    // Get all notifications
+
+    //* Get all notifications
     getNotifications: builder.query({
       query: () => '/notifications',
       providesTags: ['Notification'],
     }),
 
-    // Get unread notification count
+    //* Get unread notification count
     getUnreadCount: builder.query({
       query: () => '/notifications/unread-count',
       transformResponse: (response) => response.unreadCount,
       providesTags: ['Notification'],
     }),
 
-    // Mark one notification as read
+    //* Mark one notification as read
     markNotificationAsRead: builder.mutation({
       query: (notificationId) => ({
         url: `/notifications/${notificationId}/read`,
@@ -24,7 +25,7 @@ export const notificationApi = api.injectEndpoints({
       invalidatesTags: ['Notification'],
     }),
 
-    // Mark all notifications as read
+    //* Mark all notifications as read
     markAllNotificationsAsRead: builder.mutation({
       query: () => ({
         url: '/notifications/read-all',
@@ -32,6 +33,25 @@ export const notificationApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Notification'],
     }),
+
+    //* Delete or hide one notification
+    deleteNotification: builder.mutation({
+      query: (notificationId) => ({
+        url: `/notifications/${notificationId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+
+    //* Clear all notifications
+    deleteAllNotifications: builder.mutation({
+      query: () => ({
+        url: '/notifications/clear-all',
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Notification'],
+    }),
+
   }),
 });
 
@@ -40,4 +60,6 @@ export const {
   useGetUnreadCountQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
+  useDeleteNotificationMutation,
+  useDeleteAllNotificationsMutation,
 } = notificationApi;

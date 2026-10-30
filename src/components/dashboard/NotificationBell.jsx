@@ -1,9 +1,12 @@
+
 import { useEffect, useRef, useState } from 'react';
 import {
   useGetNotificationsQuery,
   useGetUnreadCountQuery,
   useMarkNotificationAsReadMutation,
   useMarkAllNotificationsAsReadMutation,
+  useDeleteNotificationMutation,
+  useDeleteAllNotificationsMutation,
 } from '../../services/notificationService.js';
 
 function NotificationBell({ darkMode = false }) {
@@ -25,12 +28,15 @@ function NotificationBell({ darkMode = false }) {
   const [markAllAsRead, { isLoading: isMarkingAll }] =
     useMarkAllNotificationsAsReadMutation();
 
+  const [deleteNotification, { isLoading: isDeletingOne }] =
+    useDeleteNotificationMutation();
+
+  const [deleteAllNotifications, { isLoading: isDeletingAll }] =
+    useDeleteAllNotificationsMutation();
+
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target)
-      ) {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     }
@@ -63,6 +69,34 @@ function NotificationBell({ darkMode = false }) {
       await markAllAsRead().unwrap();
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);
+    }
+  }
+
+  async function handleDeleteNotification(id) {
+    const confirmed = window.confirm(
+      'Remove this notification from your list?'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteNotification(id).unwrap();
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  }
+
+  async function handleDeleteAllNotifications() {
+    const confirmed = window.confirm(
+      'Are you sure you want to clear all your notifications?'
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteAllNotifications().unwrap();
+    } catch (error) {
+      console.error('Failed to clear notifications:', error);
     }
   }
 
@@ -116,11 +150,10 @@ function NotificationBell({ darkMode = false }) {
         }}
         aria-label={`Notifications: ${unreadCount} unread`}
         aria-expanded={isOpen}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-champagne ${
-          darkMode
-            ? 'border-[#55595D] bg-[#34383C] hover:border-champagne'
-            : 'border-stone/70 bg-white/70 hover:border-champagne'
-        }`}
+        className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-champagne ${darkMode
+          ? 'border-[#55595D] bg-[#34383C] hover:border-champagne'
+          : 'border-stone/70 bg-white/70 hover:border-champagne'
+          }`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -145,7 +178,6 @@ function NotificationBell({ darkMode = false }) {
 
       {isOpen && (
         <div
-          ref={undefined}
           role="dialog"
           aria-label="Notifications"
           className={`absolute right-0 top-12 z-50 w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-xl border shadow-xl ${colors}`}
@@ -158,19 +190,32 @@ function NotificationBell({ darkMode = false }) {
               </p>
             </div>
 
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllAsRead}
-                disabled={isMarkingAll}
-                className="text-xs font-medium text-champagne hover:underline disabled:opacity-50"
-              >
-                {isMarkingAll ? 'Updating...' : 'Mark all read'}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllAsRead}
+                  disabled={isMarkingAll || isDeletingAll}
+                  className="text-xs font-medium text-champagne hover:underline disabled:opacity-50"
+                >
+                  {isMarkingAll ? 'Updating...' : 'Mark all read'}
+                </button>
+              )}
+
+              {notificationList.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleDeleteAllNotifications}
+                  disabled={isDeletingAll || isDeletingOne}
+                  className="text-[10px] font-medium text-red-500 hover:underline disabled:opacity-50"
+                >
+                  {isDeletingAll ? 'Clearing...' : 'Clear all'}
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="max-h-[380px] overflow-y-auto">
+          <div className="notification-scrollbar max-h-[380px] overflow-y-auto">
             {isLoading ? (
               <p className={`p-6 text-center text-sm ${mutedText}`}>
                 Loading notifications...
@@ -202,19 +247,18 @@ function NotificationBell({ darkMode = false }) {
               notificationList.map((notification) => (
                 <div
                   key={notification.id}
-                  className={`flex gap-3 border-b border-stone/30 p-3 last:border-b-0 dark:border-[#55595D] ${
-                    !notification.read
-                      ? darkMode
-                        ? 'bg-champagne/10'
-                        : 'bg-amber-50'
-                      : ''
-                  }`}
+                  className={`flex gap-3 border-b border-stone/30 p-3 last:border-b-0 dark:border-[#55595D] ${!notification.read
+                    ? darkMode
+                      ? 'bg-champagne/10'
+                      : 'bg-amber-50'
+                    : ''
+                    }`}
                 >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-champagne/15 text-lg">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-champagne/15 text-sm">
                     {getIcon(notification.type)}
                   </span>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 users-scrollbar ">
                     <p className="break-words text-sm font-semibold">
                       {notification.title || 'Notification'}
                     </p>
@@ -227,16 +271,46 @@ function NotificationBell({ darkMode = false }) {
                       {formatDate(notification.createdAt)}
                     </p>
 
-                    {!notification.read && (
+                    <div className="mt-2 flex flex-wrap items-center gap-3">
+                      {!notification.read && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkAsRead(notification.id)}
+                          disabled={isMarkingOne || isDeletingOne}
+                          className="text-[10px] font-medium text-champagne hover:underline disabled:opacity-50"
+                        >
+                          Mark as read
+                        </button>
+                      )}
+
                       <button
                         type="button"
-                        onClick={() => handleMarkAsRead(notification.id)}
-                        disabled={isMarkingOne}
-                        className="mt-2 text-xs font-semibold text-champagne hover:underline disabled:opacity-50"
+                        onClick={() => handleDeleteNotification(notification.id)}
+                        disabled={isDeletingOne || isDeletingAll}
+                        aria-label="Delete notification"
+                        title="Delete notification"
+                        className={`ml-1 inline-flex h-6 w-6 items-center justify-center rounded-md transition disabled:opacity-50 ${darkMode
+                          ? 'text-ivory/50 hover:bg-red-500/10 hover:text-red-400'
+                          : 'text-charcoal/40 hover:bg-red-50 hover:text-red-500'
+                          }`}
                       >
-                        Mark as read
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-3.5 w-3.5"
+                          aria-hidden="true"
+                        >
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4h8v2" />
+                          <path d="M19 6l-1 14H6L5 6" />
+                          <path d="M10 11v5M14 11v5" />
+                        </svg>
                       </button>
-                    )}
+                    </div>
                   </div>
 
                   {!notification.read && (
