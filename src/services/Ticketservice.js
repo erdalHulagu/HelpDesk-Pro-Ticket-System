@@ -47,12 +47,19 @@ export const ticketApi = api.injectEndpoints({
       }),
       invalidatesTags: ['Ticket'],
     }),
-    
+
     assignTicket: builder.mutation({
       query: ({ id, assignedToId }) => ({
         url: `/tickets/${id}/assign`,
         method: 'PUT',
         body: { assignedToId },
+      }),
+      invalidatesTags: ['Ticket'],
+    }),
+    deleteTicket: builder.mutation({
+      query: (id) => ({
+        url: `/tickets/${id}`,
+        method: 'DELETE',
       }),
       invalidatesTags: ['Ticket'],
     }),
@@ -67,4 +74,5 @@ export const {
   useCreateTicketMutation,
   useUpdateTicketStatusMutation,
   useAssignTicketMutation,
+  useDeleteTicketMutation,
 } = ticketApi;

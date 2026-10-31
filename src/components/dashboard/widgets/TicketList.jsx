@@ -7,6 +7,7 @@ import TicketComments from '../tickets/TicketComments.jsx';
 import {
   useUpdateTicketStatusMutation,
   useAssignTicketMutation,
+  useDeleteTicketMutation,
 } from '../../../services/ticketService.js';
 
 import { useGetITSupportUsersQuery } from '../../../services/userService.js';
@@ -18,6 +19,7 @@ const TicketList = ({ tickets,
   onTicketSelectionHandled }) => {
   const role = useSelector((state) => state.auth.role);
   const token = useSelector((state) => state.auth.token);
+
 
   const showCreator = role === 'ADMIN' || role === 'IT_MANAGER';
   const canAssign = role === 'ADMIN' || role === 'IT_MANAGER';
@@ -33,6 +35,9 @@ const TicketList = ({ tickets,
   const [assignTicket, { isLoading: isAssigning }] =
     useAssignTicketMutation();
 
+  const [deleteTicket, { isLoading: isDeleting }] =
+    useDeleteTicketMutation();
+
   const {
     data: itSupportUsers = [],
     isLoading: isLoadingITSupport,
@@ -45,23 +50,23 @@ const TicketList = ({ tickets,
     (ticket) => ticket.id === selectedTicketId
   );
 
-useEffect(() => {
-  if (externalSelectedTicketId == null) return;
+  useEffect(() => {
+    if (externalSelectedTicketId == null) return;
 
-  const targetTicket = ticketList.find(
-    (ticket) =>
-      String(ticket.id) === String(externalSelectedTicketId)
-  );
+    const targetTicket = ticketList.find(
+      (ticket) =>
+        String(ticket.id) === String(externalSelectedTicketId)
+    );
 
-  if (targetTicket) {
-    setSelectedTicketId(targetTicket.id);
-    onTicketSelectionHandled?.();
-  }
-}, [
-  externalSelectedTicketId,
-  ticketList,
-  onTicketSelectionHandled,
-]);
+    if (targetTicket) {
+      setSelectedTicketId(targetTicket.id);
+      onTicketSelectionHandled?.();
+    }
+  }, [
+    externalSelectedTicketId,
+    ticketList,
+    onTicketSelectionHandled,
+  ]);
 
   useEffect(() => {
     if (
@@ -81,17 +86,17 @@ useEffect(() => {
   }, [selectedTicket?.id, selectedTicket?.assignedToId]);
 
   useEffect(() => {
-  if (externalSelectedTicketId != null) return;
+    if (externalSelectedTicketId != null) return;
 
-  if (
-    selectedTicketId !== null &&
-    !ticketList.some(
-      (ticket) => String(ticket.id) === String(selectedTicketId)
-    )
-  ) {
-    setSelectedTicketId(null);
-  }
-}, [selectedTicketId, ticketList, externalSelectedTicketId]);
+    if (
+      selectedTicketId !== null &&
+      !ticketList.some(
+        (ticket) => String(ticket.id) === String(selectedTicketId)
+      )
+    ) {
+      setSelectedTicketId(null);
+    }
+  }, [selectedTicketId, ticketList, externalSelectedTicketId]);
 
   const handleStatusChange = async (event) => {
     if (!selectedTicket) return;
@@ -116,6 +121,24 @@ useEffect(() => {
       }).unwrap();
     } catch (error) {
       console.error('Unable to assign ticket:', error);
+    }
+  };
+  const handleDeleteTicket = async () => {
+    if (!selectedTicket) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ticket "${selectedTicket.title}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteTicket(selectedTicket.id).unwrap();
+
+      setSelectedTicketId(null);
+    } catch (error) {
+      console.error('Unable to delete ticket:', error);
+      alert('Unable to delete ticket. Please try again.');
     }
   };
 
@@ -202,8 +225,8 @@ useEffect(() => {
                   onClick={() => setSelectedTicketId(ticket.id)}
                   aria-pressed={isSelected}
                   className={`block w-full rounded-xl text-left outline-none transition focus-visible:ring-2 focus-visible:ring-champagne ${isSelected
-                      ? 'rounded-xl ring-2 ring-champagne/70'
-                      : 'hover:opacity-90'
+                    ? 'rounded-xl ring-2 ring-champagne/70'
+                    : 'hover:opacity-90'
                     }`}
                 >
                   <TicketCard
@@ -243,6 +266,16 @@ useEffect(() => {
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-charcoal/75 dark:text-ivory/75">
                     {selectedTicket.description || 'No description provided.'}
                   </p>
+                  {canAssign && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteTicket}
+                      disabled={isDeleting}
+                      className="mt-4 rounded-lg border border-red-300 bg-red-50 px-1 py-0.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete Ticket'}
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
@@ -323,10 +356,10 @@ useEffect(() => {
 
                       <span
                         className={`mt-2 inline-block rounded-full px-2 py-1 text-xs font-semibold ${isResolved
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : isOverdue
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                          : isOverdue
+                            ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+                            : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
                           }`}
                       >
                         {isResolved
