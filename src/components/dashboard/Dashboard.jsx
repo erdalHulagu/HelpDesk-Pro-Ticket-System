@@ -2,14 +2,16 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useLogoutMutation } from '../../services/authService.js';
-import NotificationBell from "./NotificationBell.jsx";
+import NotificationBell from './NotificationBell.jsx';
 import { logout } from '../../features/auth/authSlice';
 import { api } from '../../services/api.js';
+
 import {
   useGetMyTicketsQuery,
   useGetAllTicketsQuery,
   useCreateTicketMutation,
 } from '../../services/ticketService';
+
 import AdminPanel from './AdminPanel';
 import AdminUserDetails from './AdminUserDetails';
 import { useGetProfilePhotoQuery } from '../../services/profileService';
@@ -19,6 +21,7 @@ import QuickActionCard from './widgets/QuickActionCard';
 import CreateTicketForm from './widgets/CreateTicketForm';
 import StatCard from './widgets/StatCard';
 import LiveClock from '../LiveClock';
+import ActivityHistory from './ActivityHistory';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
   const { username, email } = useSelector((state) => state.auth);
@@ -26,25 +29,22 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
   const dispatch = useDispatch();
   const role = useSelector((state) => state.auth.role);
   const token = useSelector((state) => state.auth.token);
+
   const [logoutRequest] = useLogoutMutation();
-
-
 
   const [activeSection, setActiveSection] = useState('dashboard');
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [selectedAdminUser, setSelectedAdminUser] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(null);
+
   const { data: profilePhotoData } = useGetProfilePhotoQuery();
-
-
 
   useEffect(() => {
     setProfilePhotoUrl(
       typeof profilePhotoData === 'string' ? profilePhotoData : null
     );
   }, [profilePhotoData]);
-
 
   const isAdmin = role === 'ADMIN';
   const isITManager = role === 'IT_MANAGER';
@@ -71,7 +71,6 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
   const isError = useAllTickets
     ? allTicketsQuery.isError
     : myTicketsQuery.isError;
-
 
   const [createTicket, { isLoading: isCreating }] =
     useCreateTicketMutation();
@@ -217,16 +216,28 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
     }
   };
 
+  const navigationBoxStyle =
+    'flex h-[58px] min-w-[90px] shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-stone/70 bg-white/70 px-3 text-charcoal transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] dark:text-ivory';
+
+  const handleKeyboardNavigation = (event, callback) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      callback();
+    }
+  };
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden bg-ivory p-3 text-charcoal dark:bg-[#25282B] dark:text-ivory sm:p-5">
-      <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-4 border-b border-stone/70 pb-4 dark:border-[#55595D] sm:pb-5">
+
+      <header className="mx-auto flex w-full max-w-6xl shrink-0 flex-col gap-4 border-b border-stone/70 pb-4 dark:border-[#55595D] sm:flex-row sm:items-center sm:justify-between sm:pb-5">
+
+        {/* Portal title */}
         <div className="min-w-0 border-l-2 border-champagne pl-3 sm:pl-4">
           <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-champagne sm:text-xs">
             Helpdesk Portal
           </p>
 
-          <h1 className="mt-1 break-words text-m font-semibold tracking-tighter ">
+          <h1 className="mt-1 break-words text-m font-semibold tracking-tighter">
             Welcome back, {username || 'User'}!
           </h1>
 
@@ -234,79 +245,29 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             Manage your support requests.
           </p>
         </div>
+        
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-2">
-          <NotificationBell
-            darkMode={darkMode}
-            onOpenTicket={handleOpenNotificationTicket}
-          />
+        {/* Navigation and actions */}
+        <div className="flex w-full min-w-0 items-center justify-between gap-3 sm:w-auto">
 
 
-          <LiveClock />
+          {/* Left navigation group */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1 sm:flex-none sm:overflow-visible sm:pb-0">
+{/* Live Clock */}
+            <LiveClock />
 
-          <button
-            type="button"
-            onClick={() => setActiveSection('profile')}
-            aria-label="Open profile"
-            className="group flex items-center mr-8 gap-2 rounded-lg border border-stone/70 bg-white/70 p-2 pr-3 transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] sm:gap-2.5 sm:p-2 sm:pr-4"
-          >
-
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-champagne/50 bg-champagne/10 text-champagne sm:h-9 sm:w-9">
-              {profilePhotoUrl ? (
-                <img
-                  src={profilePhotoUrl}
-                  alt="Profile"
-                  className="h-full w-full rounded-full object-cover"
-                />
-              ) : (
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  className="h-5 w-5"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="8" r="3.5" />
-                  <path
-                    d="M5 20a7 7 0 0 1 14 0"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              )}
-            </div>
-
-            <div className="hidden min-w-0 text-left sm:block">
-              <p className="text-[10px] font-medium uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
-                Account
-              </p>
-              <p className="max-w-24 truncate text-xs font-semibold text-charcoal dark:text-ivory">
-                {username || 'My Profile'}
-              </p>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone/70 bg-white/70 text-charcoal transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C] dark:text-ivory"
-          >
-            {darkMode ? (
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                className="h-[18px] w-[18px]"
-                aria-hidden="true"
-              >
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
-              </svg>
-            ) : (
+            {/* Home */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleBackToDashboard}
+              onKeyDown={(e) =>
+                handleKeyboardNavigation(e, handleBackToDashboard)
+              }
+              title="Home"
+              aria-label="Home"
+              className={navigationBoxStyle}
+            >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -314,26 +275,169 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 strokeWidth="1.6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-[18px] w-[18px]"
+                className="h-5 w-5"
                 aria-hidden="true"
               >
-                <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" />
+                <path d="M3 10.5 12 3l9 7.5" />
+                <path d="M5 9v12h14V9M9 21v-7h6v7" />
               </svg>
-            )}
-          </button>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-lg border border-champagne/70 px-1 py-1 text-xs font-semibold transition hover:bg-champagne hover:text-white focus:outline-none focus:ring-2 focus:ring-champagne dark:hover:text-[#25282B] sm:px-4 sm:text-sm"
-          >
-            Sign Out
-          </button>
+              <span className="whitespace-nowrap text-[10px] font-semibold">
+                Home
+              </span>
+            </div>
+
+            {/* Activity History */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setActiveSection('activityHistory')}
+              onKeyDown={(e) =>
+                handleKeyboardNavigation(e, () =>
+                  setActiveSection('activityHistory')
+                )
+              }
+              title="Activity History"
+              aria-label="Activity History"
+              className={navigationBoxStyle}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <path d="M3 3v5h5M12 7v5l3 2" />
+              </svg>
+
+              <span className="whitespace-nowrap text-[10px] font-semibold">
+                Activity
+              </span>
+            </div>
+
+            {/* Theme */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={onToggleTheme}
+              onKeyDown={(e) =>
+                handleKeyboardNavigation(e, onToggleTheme)
+              }
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              className={navigationBoxStyle}
+            >
+              {darkMode ? (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42" />
+                </svg>
+              ) : (
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-5 w-5"
+                  aria-hidden="true"
+                >
+                  <path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z" />
+                </svg>
+              )}
+
+              <span className="whitespace-nowrap text-[10px] font-semibold">
+                Theme
+              </span>
+            </div>
+
+            {/* Profile */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setActiveSection('profile')}
+              onKeyDown={(e) =>
+                handleKeyboardNavigation(e, () =>
+                  setActiveSection('profile')
+                )
+              }
+              title="Profile"
+              aria-label="Open profile"
+              className="flex h-[58px] min-w-[110px] shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-stone/70 bg-white/70 px-2.5 transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne dark:border-[#55595D] dark:bg-[#34383C]"
+            >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-champagne/50 bg-champagne/10 text-champagne">
+                {profilePhotoUrl ? (
+                  <img
+                    src={profilePhotoUrl}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <circle cx="12" cy="8" r="3.5" />
+                    <path
+                      d="M5 20a7 7 0 0 1 14 0"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
+              </div>
+
+              <div className="min-w-0 text-left">
+                <p className="text-[9px] font-medium uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
+                  Account
+                </p>
+                <p className="max-w-[75px] truncate text-[11px] font-semibold text-charcoal dark:text-ivory">
+                  {username || 'My Profile'}
+                </p>
+              </div>
+            </div>
+
+          </div>
+          {/* Notifications */}
+          <NotificationBell
+            darkMode={darkMode}
+            onOpenTicket={handleOpenNotificationTicket}
+          />
+
+          {/* Separate Sign Out */}
+          <div className="m-2 shrink-0 border-l border-stone/70 pl-3 dark:border-[#55595D]">
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="rounded-lg border border-champagne/70 px-3 py-2 text-xs font-semibold transition hover:bg-champagne hover:text-white focus:outline-none focus:ring-2 focus:ring-champagne dark:hover:text-[#25282B] sm:px-4 sm:text-sm"
+            >
+              Sign Out
+            </button>
+          </div>
 
         </div>
       </header>
 
       <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col pt-3 sm:pt-4">
+
         {activeSection === 'dashboard' && (
           <div className="flex min-h-0 flex-1 flex-col gap-2">
             <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -378,6 +482,10 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           />
         )}
 
+        {activeSection === 'activityHistory' && (
+          <ActivityHistory />
+        )}
+
         {activeSection === 'profile' && (
           <ProfilePage
             username={username}
@@ -388,7 +496,6 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           />
         )}
 
-
         {activeSection === 'admin' && (
           <AdminPanel
             onBack={() => setActiveSection('profile')}
@@ -398,6 +505,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             }}
           />
         )}
+
         {activeSection === 'admin-user' && (
           <AdminUserDetails
             user={selectedAdminUser}
@@ -405,6 +513,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             onBack={() => setActiveSection('admin')}
           />
         )}
+
       </section>
     </main>
   );

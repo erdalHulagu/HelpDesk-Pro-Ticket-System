@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import {
   useGetNotificationsQuery,
@@ -41,9 +42,7 @@ function NotificationBell({ darkMode = false, onOpenTicket }) {
     }
 
     function handleEscape(event) {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
+      if (event.key === 'Escape') setIsOpen(false);
     }
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -142,25 +141,32 @@ function NotificationBell({ darkMode = false, onOpenTicket }) {
     ? 'text-ivory/60'
     : 'text-charcoal/60';
 
+  const boxStyle = darkMode
+    ? 'border-[#55595D] bg-[#34383C] hover:border-champagne'
+    : 'border-stone/70 bg-white/70 hover:border-champagne';
+
   return (
     <div className="relative shrink-0" ref={panelRef}>
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => {
           const nextState = !isOpen;
           setIsOpen(nextState);
 
-          if (nextState) {
-            refetch();
+          if (nextState) refetch();
+        }}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            const nextState = !isOpen;
+            setIsOpen(nextState);
+            if (nextState) refetch();
           }
         }}
         aria-label={`Notifications: ${unreadCount} unread`}
         aria-expanded={isOpen}
-        className={`relative flex h-9 w-9 items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-champagne ${
-          darkMode
-            ? 'border-[#55595D] bg-[#34383C] hover:border-champagne'
-            : 'border-stone/70 bg-white/70 hover:border-champagne'
-        }`}
+        className={`relative flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-lg border transition focus:outline-none focus:ring-2 focus:ring-champagne ${boxStyle}`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -181,13 +187,13 @@ function NotificationBell({ darkMode = false, onOpenTicket }) {
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
-      </button>
+      </div>
 
       {isOpen && (
         <div
           role="dialog"
           aria-label="Notifications"
-          className={`absolute right-0 top-12 z-50 w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-xl border shadow-xl ${colors}`}
+          className={`absolute right-0 top-14 z-50 w-[min(360px,calc(100vw-24px))] overflow-hidden rounded-xl border shadow-xl ${colors}`}
         >
           <div className="flex items-center justify-between gap-3 border-b border-stone/50 p-4 dark:border-[#55595D]">
             <div>
@@ -199,14 +205,14 @@ function NotificationBell({ darkMode = false, onOpenTicket }) {
 
             <div className="flex items-center gap-3">
               {unreadCount > 0 && (
-                <button
+                <div
                   type="button"
                   onClick={handleMarkAllAsRead}
                   disabled={isMarkingAll || isDeletingAll}
                   className="text-xs font-medium text-champagne hover:underline disabled:opacity-50"
                 >
                   {isMarkingAll ? 'Updating...' : 'Mark all read'}
-                </button>
+                </div>
               )}
 
               {notificationList.length > 0 && (
@@ -229,9 +235,7 @@ function NotificationBell({ darkMode = false, onOpenTicket }) {
               </p>
             ) : isError ? (
               <div className="p-6 text-center">
-                <p className="text-sm">
-                  Unable to load notifications.
-                </p>
+                <p className="text-sm">Unable to load notifications.</p>
                 <button
                   type="button"
                   onClick={refetch}
