@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useGetAllActivitiesQuery } from '../../services/activityService.js';
@@ -15,6 +16,9 @@ const ActivityHistory = () => {
 
     const activities = Array.isArray(data) ? data : [];
 
+    const getActivityType = (activity) =>
+        String(activity.activityType || '').trim().toUpperCase();
+
     const filters = [
         { label: 'All Activities', value: 'ALL' },
         { label: 'Ticket Updates', value: 'TICKET_UPDATES' },
@@ -27,26 +31,28 @@ const ActivityHistory = () => {
     ];
 
     const filterActivities = (activity) => {
+        const type = getActivityType(activity);
+
         switch (activeFilter) {
             case 'TICKET_UPDATES':
                 return [
                     'TICKET_CREATED',
                     'TICKET_UPDATED',
                     'TICKET_RESOLVED',
-                ].includes(activity.activityType);
+                ].includes(type);
 
             case 'STATUS':
-                return activity.activityType === 'STATUS_CHANGED';
+                return type === 'STATUS_CHANGED';
 
             case 'ASSIGNMENT':
-                return activity.activityType === 'ASSIGNED';
+                return type === 'ASSIGNED';
 
             case 'COMMENTS':
-                return activity.activityType === 'COMMENT_ADDED';
+                return type === 'COMMENT_ADDED';
 
             case 'INTERNAL_NOTES':
                 return canViewInternalNotes &&
-                    activity.activityType === 'INTERNAL_NOTE_ADDED';
+                    type === 'INTERNAL_NOTE_ADDED';
 
             default:
                 return true;
@@ -79,11 +85,15 @@ const ActivityHistory = () => {
             TICKET_DELETED: 'Ticket Deleted',
         };
 
-        return labels[type] || type?.replaceAll('_', ' ') || 'Activity';
+        const normalizedType = String(type || '').trim().toUpperCase();
+
+        return labels[normalizedType] ||
+            normalizedType.replaceAll('_', ' ') ||
+            'Activity';
     };
 
     const getActivityColor = (type) => {
-        switch (type) {
+        switch (String(type || '').trim().toUpperCase()) {
             case 'TICKET_CREATED':
                 return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300';
 
@@ -94,6 +104,9 @@ const ActivityHistory = () => {
             case 'ASSIGNED':
                 return 'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300';
 
+            case 'COMMENT_ADDED':
+                return 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300';
+
             case 'INTERNAL_NOTE_ADDED':
                 return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300';
 
@@ -103,7 +116,7 @@ const ActivityHistory = () => {
     };
 
     const getDetails = (activity) => {
-        if (activity.activityType === 'ASSIGNED') {
+        if (getActivityType(activity) === 'ASSIGNED') {
             return `${activity.oldValue || 'Unassigned'} → ${activity.newValue || 'Unassigned'}`;
         }
 
@@ -142,10 +155,11 @@ const ActivityHistory = () => {
                         key={filter.value}
                         type="button"
                         onClick={() => setActiveFilter(filter.value)}
-                        className={`rounded-full px-4 py-2 text-xs font-semibold transition ${activeFilter === filter.value
+                        className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                            activeFilter === filter.value
                                 ? 'bg-charcoal text-white dark:bg-champagne dark:text-[#25282B]'
                                 : 'border border-stone/70 bg-white/60 hover:bg-champagne/10 dark:border-[#55595D] dark:bg-[#34383C]'
-                            }`}
+                        }`}
                     >
                         {filter.label}
                     </button>
@@ -200,7 +214,9 @@ const ActivityHistory = () => {
                                         </td>
 
                                         <td className="px-5 py-4">
-                                            <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getActivityColor(activity.activityType)}`}>
+                                            <span
+                                                className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getActivityColor(activity.activityType)}`}
+                                            >
                                                 {getActivityLabel(activity.activityType)}
                                             </span>
                                         </td>
