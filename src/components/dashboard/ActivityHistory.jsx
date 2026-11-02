@@ -19,6 +19,11 @@ const ActivityHistory = () => {
     const getActivityType = (activity) =>
         String(activity.activityType || '').trim().toUpperCase();
 
+    const getUserRole = (activity) =>
+        String(activity.performedByRole || 'UNKNOWN')
+            .trim()
+            .toUpperCase();
+
     const filters = [
         { label: 'All Activities', value: 'ALL' },
         { label: 'Ticket Updates', value: 'TICKET_UPDATES' },
@@ -60,6 +65,42 @@ const ActivityHistory = () => {
     };
 
     const filteredActivities = activities.filter(filterActivities);
+
+
+    const roleGroups = [
+        {
+            key: 'ADMIN',
+            title: 'Admin Activities',
+            roles: ['ADMIN'],
+        },
+        {
+            key: 'IT_MANAGER',
+            title: 'IT Manager Activities',
+            roles: ['IT_MANAGER'],
+        },
+        {
+            key: 'IT_SUPPORT',
+            title: 'IT Support Activities',
+            roles: ['IT_SUPPORT'],
+        },
+        {
+            key: 'EMPLOYEE',
+            title: 'Employee Activities',
+            roles: ['EMPLOYEE'],
+        },
+    ];
+    const groupedActivities = roleGroups.map((group) => ({
+        ...group,
+        activities: filteredActivities.filter((activity) =>
+            group.roles.includes(getUserRole(activity))
+        ),
+    }));
+
+    const otherActivities = filteredActivities.filter((activity) =>
+        !roleGroups.some((group) =>
+            group.roles.includes(getUserRole(activity))
+        )
+    );
 
     const formatDate = (date) => {
         if (!date) return '—';
@@ -127,9 +168,62 @@ const ActivityHistory = () => {
         return '—';
     };
 
-    // Same visual style as dashboard navigationBoxStyle
     const navigationButtonStyle =
         'flex h-[58px] min-w-[90px] shrink-0 cursor-pointer items-center justify-center rounded-lg border px-3 text-[10px] font-semibold text-center transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne';
+
+    const renderActivityTable = (groupActivities) => (
+        <div className="users-scrollbar overflow-auto">
+            <table className="w-full min-w-[850px] text-left text-sm">
+                <thead className="sticky top-0 z-10 bg-stone/20 text-xs uppercase tracking-wider text-charcoal/60 dark:bg-[#25282B] dark:text-ivory/60">
+                    <tr>
+                        <th className="px-5 py-4">Date & Time</th>
+                        <th className="px-5 py-4">Activity Type</th>
+                        <th className="px-5 py-4">Description</th>
+                        <th className="px-5 py-4">Performed By</th>
+                        <th className="px-5 py-4">Ticket</th>
+                        <th className="px-5 py-4">Details</th>
+                    </tr>
+                </thead>
+
+                <tbody className="divide-y divide-stone/50 dark:divide-[#55595D]">
+                    {groupActivities.map((activity) => (
+                        <tr
+                            key={activity.id}
+                            className="transition hover:bg-champagne/5"
+                        >
+                            <td className="whitespace-nowrap px-5 py-4 text-xs text-charcoal/70 dark:text-ivory/70">
+                                {formatDate(activity.createdAt)}
+                            </td>
+
+                            <td className="px-5 py-4">
+                                <span
+                                    className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getActivityColor(activity.activityType)}`}
+                                >
+                                    {getActivityLabel(activity.activityType)}
+                                </span>
+                            </td>
+
+                            <td className="max-w-xs px-5 py-4">
+                                {activity.description}
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-4">
+                                {activity.performedByUsername || 'Unknown'}
+                            </td>
+
+                            <td className="px-5 py-4">
+                                #{activity.ticketId}
+                            </td>
+
+                            <td className="whitespace-nowrap px-5 py-4 text-xs text-charcoal/70 dark:text-ivory/70">
+                                {getDetails(activity)}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
 
     return (
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
@@ -163,19 +257,18 @@ const ActivityHistory = () => {
                         type="button"
                         onClick={() => setActiveFilter(filter.value)}
                         aria-pressed={activeFilter === filter.value}
-                        className={`${navigationButtonStyle} ${
-                            activeFilter === filter.value
+                        className={`${navigationButtonStyle} ${activeFilter === filter.value
                                 ? 'border-champagne bg-champagne/20 text-charcoal dark:border-champagne dark:bg-champagne dark:text-[#25282B]'
                                 : 'border-stone/70 bg-white/70 text-charcoal dark:border-[#55595D] dark:bg-[#34383C] dark:text-ivory'
-                        }`}
+                            }`}
                     >
                         {filter.label}
                     </button>
                 ))}
             </div>
 
-            {/* Activity Table */}
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-stone/70 bg-white/70 dark:border-[#55595D] dark:bg-[#34383C]">
+            {/* Activity Groups */}
+            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto">
 
                 {isLoading ? (
                     <div className="flex flex-1 items-center justify-center text-sm text-charcoal/60 dark:text-ivory/60">
@@ -200,57 +293,44 @@ const ActivityHistory = () => {
                         No activities found.
                     </div>
                 ) : (
-                    <div className="users-scrollbar min-h-0 flex-1 overflow-auto">
-                        <table className="w-full min-w-[850px] text-left text-sm">
-                            <thead className="sticky top-0 z-10 bg-stone/20 text-xs uppercase tracking-wider text-charcoal/60 dark:bg-[#25282B] dark:text-ivory/60">
-                                <tr>
-                                    <th className="px-5 py-4">Date & Time</th>
-                                    <th className="px-5 py-4">Activity Type</th>
-                                    <th className="px-5 py-4">Description</th>
-                                    <th className="px-5 py-4">Performed By</th>
-                                    <th className="px-5 py-4">Ticket</th>
-                                    <th className="px-5 py-4">Details</th>
-                                </tr>
-                            </thead>
+                    <>
+                        {groupedActivities.map((group) => (
+                            group.activities.length > 0 && (
+                                <section
+                                    key={group.key}
+                                    className="shrink-0 overflow-hidden rounded-xl border border-stone/70 bg-white/70 dark:border-[#55595D] dark:bg-[#34383C]"
+                                >
+                                    <div className="flex items-center justify-between border-b border-stone/50 bg-stone/20 px-5 py-4 dark:border-[#55595D] dark:bg-[#25282B]">
+                                        <h3 className="font-semibold">
+                                            {group.title}
+                                        </h3>
 
-                            <tbody className="divide-y divide-stone/50 dark:divide-[#55595D]">
-                                {filteredActivities.map((activity) => (
-                                    <tr
-                                        key={activity.id}
-                                        className="transition hover:bg-champagne/5"
-                                    >
-                                        <td className="whitespace-nowrap px-5 py-4 text-xs text-charcoal/70 dark:text-ivory/70">
-                                            {formatDate(activity.createdAt)}
-                                        </td>
+                                        <span className="rounded-full bg-champagne/20 px-3 py-1 text-xs font-semibold text-charcoal dark:text-ivory">
+                                            {group.activities.length} activities
+                                        </span>
+                                    </div>
 
-                                        <td className="px-5 py-4">
-                                            <span
-                                                className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ${getActivityColor(activity.activityType)}`}
-                                            >
-                                                {getActivityLabel(activity.activityType)}
-                                            </span>
-                                        </td>
+                                    {renderActivityTable(group.activities)}
+                                </section>
+                            )
+                        ))}
 
-                                        <td className="max-w-xs px-5 py-4">
-                                            {activity.description}
-                                        </td>
+                        {otherActivities.length > 0 && (
+                            <section className="shrink-0 overflow-hidden rounded-xl border border-stone/70 bg-white/70 dark:border-[#55595D] dark:bg-[#34383C]">
+                                <div className="flex items-center justify-between border-b border-stone/50 bg-stone/20 px-5 py-4 dark:border-[#55595D] dark:bg-[#25282B]">
+                                    <h3 className="font-semibold">
+                                        Other Users
+                                    </h3>
 
-                                        <td className="whitespace-nowrap px-5 py-4">
-                                            {activity.performedByUsername || 'Unknown'}
-                                        </td>
+                                    <span className="rounded-full bg-champagne/20 px-3 py-1 text-xs font-semibold text-charcoal dark:text-ivory">
+                                        {otherActivities.length} activities
+                                    </span>
+                                </div>
 
-                                        <td className="px-5 py-4">
-                                            #{activity.ticketId}
-                                        </td>
-
-                                        <td className="whitespace-nowrap px-5 py-4 text-xs text-charcoal/70 dark:text-ivory/70">
-                                            {getDetails(activity)}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                {renderActivityTable(otherActivities)}
+                            </section>
+                        )}
+                    </>
                 )}
             </div>
 
