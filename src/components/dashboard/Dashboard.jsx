@@ -21,7 +21,7 @@ import QuickActionCard from './widgets/QuickActionCard';
 import CreateTicketForm from './widgets/CreateTicketForm';
 import StatCard from './widgets/StatCard';
 import LiveClock from '../LiveClock';
-import ActivityHistory from './ActivityHistory';
+import ActivityHistory from './ActivityHistory.jsx';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
   const { username, email } = useSelector((state) => state.auth);
@@ -245,7 +245,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             Manage your support requests.
           </p>
         </div>
-        
+
 
         {/* Navigation and actions */}
         <div className="flex w-full min-w-0 items-center justify-between gap-3 sm:w-auto">
@@ -253,7 +253,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
 
           {/* Left navigation group */}
           <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-1 sm:flex-none sm:overflow-visible sm:pb-0">
-{/* Live Clock */}
+            {/* Live Clock */}
             <LiveClock />
 
             {/* Home */}

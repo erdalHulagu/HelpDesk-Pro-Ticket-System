@@ -127,14 +127,20 @@ const ActivityHistory = () => {
         return '—';
     };
 
+    // Same visual style as dashboard navigationBoxStyle
+    const navigationButtonStyle =
+        'flex h-[58px] min-w-[90px] shrink-0 cursor-pointer items-center justify-center rounded-lg border px-3 text-[10px] font-semibold text-center transition hover:border-champagne hover:bg-champagne/10 focus:outline-none focus:ring-2 focus:ring-champagne';
+
     return (
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden">
 
+            {/* Header */}
             <div className="flex shrink-0 flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 className="text-xl font-semibold tracking-tight">
                         Activity History
                     </h2>
+
                     <p className="mt-1 text-sm text-charcoal/60 dark:text-ivory/60">
                         Review activity across your accessible tickets.
                     </p>
@@ -149,16 +155,18 @@ const ActivityHistory = () => {
                 </button>
             </div>
 
-            <div className="flex shrink-0 flex-wrap gap-2">
+            {/* Activity Filters */}
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
                 {filters.map((filter) => (
                     <button
                         key={filter.value}
                         type="button"
                         onClick={() => setActiveFilter(filter.value)}
-                        className={`rounded-full px-4 py-2 text-xs font-semibold transition ${
+                        aria-pressed={activeFilter === filter.value}
+                        className={`${navigationButtonStyle} ${
                             activeFilter === filter.value
-                                ? 'bg-charcoal text-white dark:bg-champagne dark:text-[#25282B]'
-                                : 'border border-stone/70 bg-white/60 hover:bg-champagne/10 dark:border-[#55595D] dark:bg-[#34383C]'
+                                ? 'border-champagne bg-champagne/20 text-charcoal dark:border-champagne dark:bg-champagne dark:text-[#25282B]'
+                                : 'border-stone/70 bg-white/70 text-charcoal dark:border-[#55595D] dark:bg-[#34383C] dark:text-ivory'
                         }`}
                     >
                         {filter.label}
@@ -166,6 +174,7 @@ const ActivityHistory = () => {
                 ))}
             </div>
 
+            {/* Activity Table */}
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-stone/70 bg-white/70 dark:border-[#55595D] dark:bg-[#34383C]">
 
                 {isLoading ? (
@@ -177,6 +186,7 @@ const ActivityHistory = () => {
                         <p className="text-sm text-red-600 dark:text-red-400">
                             Unable to load activity history.
                         </p>
+
                         <button
                             type="button"
                             onClick={refetch}
@@ -190,7 +200,7 @@ const ActivityHistory = () => {
                         No activities found.
                     </div>
                 ) : (
-                    <div className="min-h-0 flex-1 overflow-auto">
+                    <div className="users-scrollbar min-h-0 flex-1 overflow-auto">
                         <table className="w-full min-w-[850px] text-left text-sm">
                             <thead className="sticky top-0 z-10 bg-stone/20 text-xs uppercase tracking-wider text-charcoal/60 dark:bg-[#25282B] dark:text-ivory/60">
                                 <tr>
@@ -244,6 +254,7 @@ const ActivityHistory = () => {
                 )}
             </div>
 
+            {/* Activity Count */}
             <p className="shrink-0 text-xs text-charcoal/50 dark:text-ivory/50">
                 Showing {filteredActivities.length} of {activities.length} activities
             </p>
