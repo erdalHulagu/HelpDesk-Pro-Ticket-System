@@ -12,8 +12,8 @@ import {
   useCreateTicketMutation,
 } from '../../services/ticketService';
 
-import AdminPanel from './AdminPanel';
-import AdminUserDetails from './AdminUserDetails';
+import AdminPanel from '../admin/AdminPanel.jsx';
+import AdminUserDetails from '../admin/AdminUserDetails';
 import { useGetProfilePhotoQuery } from '../../services/profileService';
 import ProfilePage from './profile/ProfilePage';
 import TicketList from './widgets/TicketList';
