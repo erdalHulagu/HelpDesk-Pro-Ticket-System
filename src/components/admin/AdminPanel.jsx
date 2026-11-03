@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 import { useGetAllUsersQuery } from '../../services/userService';
@@ -7,6 +6,7 @@ import AdminHeader from './AdminHeader';
 import UserStatistics from './UserStatistics';
 import UserStatusOverview from './UserStatusOverview';
 import UserTable from './UserTable';
+import AnnouncementManagement from './AnnouncementManagement';
 
 const AdminPanel = ({ onBack, onSelectUser }) => {
   const {
@@ -17,6 +17,7 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
 
   const [selectedRole, setSelectedRole] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeSection, setActiveSection] = useState('USERS');
 
   const allUsers = Array.isArray(users) ? users : [];
 
@@ -43,38 +44,76 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
 
       <AdminHeader onBack={onBack} />
 
-      <UserStatistics
-        users={users}
-        isLoading={isLoading}
-        isError={isError}
-        selectedRole={selectedRole}
-        setSelectedRole={setSelectedRole}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      {/* Admin sections */}
+      <div className="mb-4 flex shrink-0 gap-2 border-b border-stone/80 dark:border-[#55595D]">
 
-      <UserStatusOverview
-        users={users}
-        isLoading={isLoading}
-        isError={isError}
-      />
+        <button
+          type="button"
+          onClick={() => setActiveSection('USERS')}
+          className={`border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+            activeSection === 'USERS'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white'
+          }`}
+        >
+          User Management
+        </button>
 
-      <section className="users-scrollbar min-h-0 flex-1 overflow-auto rounded-xl border border-stone/80 bg-white dark:border-[#55595D] dark:bg-[#34383C]">
+        <button
+          type="button"
+          onClick={() => setActiveSection('ANNOUNCEMENTS')}
+          className={`border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+            activeSection === 'ANNOUNCEMENTS'
+              ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
+              : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white'
+          }`}
+        >
+          Announcement Center
+        </button>
 
-        <div className="border-b border-stone/80 px-5 py-3 dark:border-[#55595D]">
-          <h3 className="text-sm font-semibold">
-            All Users
-          </h3>
+      </div>
+
+      {activeSection === 'USERS' ? (
+        <>
+          <UserStatistics
+            users={users}
+            isLoading={isLoading}
+            isError={isError}
+            selectedRole={selectedRole}
+            setSelectedRole={setSelectedRole}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+
+          <UserStatusOverview
+            users={users}
+            isLoading={isLoading}
+            isError={isError}
+          />
+
+          <section className="users-scrollbar min-h-0 flex-1 overflow-auto rounded-xl border border-stone/80 bg-white dark:border-[#55595D] dark:bg-[#34383C]">
+
+            <div className="border-b border-stone/80 px-5 py-3 dark:border-[#55595D]">
+              <h3 className="text-sm font-semibold">
+                All Users
+              </h3>
+            </div>
+
+            <UserTable
+              users={filteredUsers}
+              isLoading={isLoading}
+              isError={isError}
+              onSelectUser={onSelectUser}
+            />
+
+          </section>
+        </>
+      ) : (
+        <div className="min-h-0 flex-1 overflow-auto">
+          <AnnouncementManagement />
         </div>
+      )}
 
-        <UserTable
-          users={filteredUsers}
-          isLoading={isLoading}
-          isError={isError}
-          onSelectUser={onSelectUser}
-        />
-
-      </section>
     </div>
   );
 };
