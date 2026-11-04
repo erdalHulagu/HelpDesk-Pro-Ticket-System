@@ -45,6 +45,23 @@ export const announcementApi = api.injectEndpoints({
       invalidatesTags: ['Announcement'],
     }),
 
+    // Mark announcement as read
+    markAnnouncementAsRead: builder.mutation({
+      query: (announcementId) => ({
+        url: `/announcements/${announcementId}/read`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Announcement'],
+    }),
+
+    markAllAnnouncementsAsRead: builder.mutation({
+      query: () => ({
+        url: '/announcements/read-all',
+        method: 'PUT',
+      }),
+      invalidatesTags: ['Announcement'],
+    }),
+
   }),
 });
 
@@ -54,4 +71,6 @@ export const {
   useCreateAnnouncementMutation,
   useUpdateAnnouncementMutation,
   useDeleteAnnouncementMutation,
+  useMarkAnnouncementAsReadMutation,
+  useMarkAllAnnouncementsAsReadMutation,
 } = announcementApi;
