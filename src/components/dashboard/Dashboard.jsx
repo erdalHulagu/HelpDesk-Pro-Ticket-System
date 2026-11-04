@@ -22,6 +22,7 @@ import CreateTicketForm from './widgets/CreateTicketForm';
 import StatCard from './widgets/StatCard';
 import LiveClock from '../LiveClock';
 import ActivityHistory from './ActivityHistory.jsx';
+import AnnouncementBell from './AnnouncementBell.jsx';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
   const { username, email } = useSelector((state) => state.auth);
@@ -421,6 +422,8 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             onOpenTicket={handleOpenNotificationTicket}
           />
 
+           {/* AnnouncementBell */}
+          <AnnouncementBell darkMode={darkMode} />
           {/* Separate Sign Out */}
           <div className="m-2 shrink-0 border-l border-stone/70 pl-3 dark:border-[#55595D]">
 
@@ -454,6 +457,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
               ))}
             </div>
 
+            {/* Tickets and Quick Actions */}
             <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-3 lg:grid-rows-1 lg:gap-4">
               <TicketList
                 tickets={filteredTickets}
