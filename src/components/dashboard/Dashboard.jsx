@@ -23,6 +23,7 @@ import StatCard from './widgets/StatCard';
 import LiveClock from '../LiveClock';
 import ActivityHistory from './ActivityHistory.jsx';
 import AnnouncementBell from './AnnouncementBell.jsx';
+import ITManagerPanel from '../manager/ITManagerPanel.jsx';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
   const { username, email } = useSelector((state) => state.auth);
@@ -422,7 +423,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             onOpenTicket={handleOpenNotificationTicket}
           />
 
-           {/* AnnouncementBell */}
+          {/* AnnouncementBell */}
           <AnnouncementBell darkMode={darkMode} />
           {/* Separate Sign Out */}
           <div className="m-2 shrink-0 border-l border-stone/70 pl-3 dark:border-[#55595D]">
@@ -497,6 +498,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             onBack={handleBackToDashboard}
             onLogout={handleLogout}
             onAdminPanel={() => setActiveSection('admin')}
+            onITManagerPanel={() => setActiveSection('it-manager')}
           />
         )}
 
@@ -517,7 +519,11 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             onBack={() => setActiveSection('admin')}
           />
         )}
-
+        {activeSection === 'it-manager' && isITManager && (
+          <ITManagerPanel
+            onBack={handleBackToDashboard}
+          />
+        )}
       </section>
     </main>
   );

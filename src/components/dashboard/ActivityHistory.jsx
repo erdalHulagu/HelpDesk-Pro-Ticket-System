@@ -174,7 +174,7 @@ const ActivityHistory = () => {
     const renderActivityTable = (groupActivities) => (
         <div className="users-scrollbar overflow-auto">
             <table className="w-full min-w-[850px] text-left text-sm">
-                <thead className="sticky top-0 z-10 bg-stone/20 text-xs uppercase tracking-wider text-charcoal/60 dark:bg-[#25282B] dark:text-ivory/60">
+                <thead className="sticky  top-0 z-10 bg-stone/20 text-xs uppercase tracking-wider text-charcoal/60 dark:bg-[#25282B] dark:text-ivory/60">
                     <tr>
                         <th className="px-5 py-4">Date & Time</th>
                         <th className="px-5 py-4">Activity Type</th>
@@ -268,7 +268,7 @@ const ActivityHistory = () => {
             </div>
 
             {/* Activity Groups */}
-            <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto">
+            <div className="flex notification-scrollbar min-h-0 flex-1 flex-col gap-4 overflow-auto">
 
                 {isLoading ? (
                     <div className="flex flex-1 items-center justify-center text-sm text-charcoal/60 dark:text-ivory/60">
@@ -316,7 +316,7 @@ const ActivityHistory = () => {
                         ))}
 
                         {otherActivities.length > 0 && (
-                            <section className="shrink-0 overflow-hidden rounded-xl border border-stone/70 bg-white/70 dark:border-[#55595D] dark:bg-[#34383C]">
+                            <section className="shrink-0  overflow-hidden rounded-xl border border-stone/70 bg-white/70 dark:border-[#55595D] dark:bg-[#34383C]">
                                 <div className="flex items-center justify-between border-b border-stone/50 bg-stone/20 px-5 py-4 dark:border-[#55595D] dark:bg-[#25282B]">
                                     <h3 className="font-semibold">
                                         Other Users
