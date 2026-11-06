@@ -157,7 +157,7 @@ function AnnouncementBell({ darkMode = false }) {
             {/* Announcement Window */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-6"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-6 "
                     onClick={(event) => {
                         if (event.target === event.currentTarget) {
                             setIsOpen(false);
@@ -203,7 +203,7 @@ function AnnouncementBell({ darkMode = false }) {
                         </header>
 
                         {/* Content */}
-                        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
+                        <div className="users-scrollbar min-h-0 flex-1 space-y-4 overflow-auto p-5">
 
                             {/* Mark All as Read */}
                             {!isLoading && !isError && unreadCount > 0 && (
