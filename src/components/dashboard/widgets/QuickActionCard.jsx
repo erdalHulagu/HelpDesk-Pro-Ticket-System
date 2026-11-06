@@ -1,14 +1,17 @@
 
 const QuickActionCard = ({ onCreateTicket }) => {
   return (
-    <section className="rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-5">
+    <section className="flex h-full min-h-0 w-full flex-col rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-5">
       <div className="flex items-center gap-3">
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-champagne/15 text-xl text-champagne">
           +
         </span>
 
         <div className="min-w-0">
-          <h2 className="text-base font-semibold">Quick Actions</h2>
+          <h2 className="text-base font-semibold">
+            Quick Actions
+          </h2>
+
           <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
             Get support when you need it.
           </p>

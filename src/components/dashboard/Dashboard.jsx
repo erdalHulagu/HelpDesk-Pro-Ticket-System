@@ -477,7 +477,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
               </section>
 
               {/* Quick Actions */}
-              <div className="min-h-0 min-w-0">
+              <div className="flex h-full min-h-0 min-w-0">
                 <QuickActionCard
                   onCreateTicket={handleOpenCreateTicket}
                 />
