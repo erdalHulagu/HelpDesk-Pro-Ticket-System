@@ -9,7 +9,7 @@ const CreateTicketForm = ({
   onBack,
 }) => {
   return (
-    <div className="ticket-scrollbar min-h-0 flex-1 overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
+    <div className="ticket-scrollbar flex h-full min-h-0 w-full flex-1 flex-col overflow-y-auto rounded-xl border border-stone/70 bg-white p-4 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] sm:p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <p className="text-xs font-medium uppercase tracking-widest text-champagne">
@@ -28,7 +28,7 @@ const CreateTicketForm = ({
         <button
           type="button"
           onClick={onBack}
-          className="shrink-0 rounded-full border border-stone px-3 py-2 text-xs font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] sm:text-sm"
+          className="shrink-0 rounded-lg border border-stone px-3 py-2 text-xs font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D] sm:text-sm"
         >
           Back
         </button>
@@ -146,7 +146,7 @@ const CreateTicketForm = ({
           <button
             type="submit"
             disabled={isCreating}
-            className="rounded-full bg-charcoal px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-champagne dark:text-charcoal"
+            className="rounded-lg bg-charcoal px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-champagne dark:text-charcoal"
           >
             {isCreating ? 'Creating...' : 'Submit Ticket'}
           </button>
@@ -154,7 +154,7 @@ const CreateTicketForm = ({
           <button
             type="button"
             onClick={onBack}
-            className="rounded-full border border-stone px-5 py-2.5 text-sm font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D]"
+            className="rounded-lg border border-stone px-5 py-2.5 text-sm font-medium transition hover:border-champagne hover:bg-champagne/10 dark:border-[#55595D]"
           >
             Cancel
           </button>

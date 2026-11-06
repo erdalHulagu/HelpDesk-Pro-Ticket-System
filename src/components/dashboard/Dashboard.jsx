@@ -127,10 +127,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
     },
   ];
 
-  const filteredTickets =
-    selectedStatus === 'ALL'
-      ? allTickets
-      : allTickets.filter((ticket) => ticket.status === selectedStatus);
+ 
 
   const handleFormChange = (event) => {
     const { name, value } = event.target;
@@ -442,8 +439,11 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
 
       <section className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col pt-3 sm:pt-4">
 
+
         {activeSection === 'dashboard' && (
           <div className="flex min-h-0 flex-1 flex-col gap-2">
+
+            {/* Ticket Statistics */}
             <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
               {ticketStats.map((stat) => (
                 <StatCard
@@ -459,21 +459,34 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
             </div>
 
             {/* Tickets and Quick Actions */}
-            <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-3 lg:grid-rows-1 lg:gap-4">
-              <TicketList
-                tickets={filteredTickets}
-                isLoading={isLoading}
-                isError={isError}
-                selectedTicketId={selectedTicketId}
-                onTicketSelectionHandled={() => setSelectedTicketId(null)}
-              />
+            <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_auto] gap-3 lg:grid-cols-3 lg:grid-rows-1 lg:gap-4">
 
-              <QuickActionCard
-                onCreateTicket={handleOpenCreateTicket}
-              />
+              {/* Main Ticket Area */}
+              <section className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-stone/80 bg-white p-2 shadow-sm dark:border-[#55595D] dark:bg-[#34383C] lg:col-span-2">
+
+                <TicketList
+                  tickets={allTickets}
+                  isLoading={isLoading}
+                  isError={isError}
+                  selectedTicketId={selectedTicketId}
+                  onTicketSelectionHandled={() => setSelectedTicketId(null)}
+                  selectedStatus={selectedStatus}
+                  onStatusChange={setSelectedStatus}
+                />
+
+              </section>
+
+              {/* Quick Actions */}
+              <div className="min-h-0 min-w-0">
+                <QuickActionCard
+                  onCreateTicket={handleOpenCreateTicket}
+                />
+              </div>
+
             </div>
           </div>
         )}
+
 
         {activeSection === 'createTicket' && (
           <CreateTicketForm
