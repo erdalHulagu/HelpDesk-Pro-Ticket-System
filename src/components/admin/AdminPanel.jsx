@@ -68,30 +68,34 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
   const allTickets = Array.isArray(tickets) ? tickets : [];
 
   //* User filtering
+  const getUserActiveStatus = (user) => {
+    const value = user.isActive ?? user.active ?? user.is_active;
 
+    if (value === true || value === 'true' || value === 1 || value === '1') {
+      return true;
+    }
+
+    if (value === false || value === 'false' || value === 0 || value === '0') {
+      return false;
+    }
+
+    return null;
+  };
+
+  // User filtering
   const filteredUsers = allUsers.filter((user) => {
     const userRole = String(user.role || '').trim().toUpperCase();
     const search = searchTerm.trim().toLowerCase();
 
-    const userIsActive =
-      user.active === true ||
-      user.active === 'true' ||
-      user.isActive === true ||
-      user.isActive === 'true';
-
-    const userIsInactive =
-      user.active === false ||
-      user.active === 'false' ||
-      user.isActive === false ||
-      user.isActive === 'false';
+    const activeStatus = getUserActiveStatus(user);
 
     const matchesRole =
       selectedRole === 'ALL' || userRole === selectedRole;
 
     const matchesStatus =
       statusFilter === 'ALL' ||
-      (statusFilter === 'ACTIVE' && userIsActive) ||
-      (statusFilter === 'INACTIVE' && userIsInactive);
+      (statusFilter === 'ACTIVE' && activeStatus === true) ||
+      (statusFilter === 'INACTIVE' && activeStatus === false);
 
     const matchesSearch =
       !search ||
@@ -391,15 +395,7 @@ const AdminPanel = ({ onBack, onSelectUser }) => {
 
           {/* Scrollable user list */}
           <div className="users-scrollbar mt-2 min-h-0 flex-1 overflow-auto rounded-lg border border-stone/70 dark:border-[#55595D]">
-            <div className="flex items-center justify-between border-b border-stone/70 bg-white px-3 py-2 dark:border-[#55595D] dark:bg-[#34383C]">
-              <h3 className="text-xs font-semibold text-charcoal dark:text-ivory">
-                All Users
-              </h3>
-
-              <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
-                {filteredUsers.length} users
-              </span>
-            </div>
+            
 
             <UserTable
               users={filteredUsers}

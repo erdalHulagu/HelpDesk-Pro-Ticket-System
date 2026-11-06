@@ -9,14 +9,14 @@ const AdminUserDetails = ({ user, currentUserId, onBack }) => {
   const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [role, setRole] = useState(user?.role || 'EMPLOYEE');
-  const [active, setActive] = useState(Boolean(user?.active));
+  const [active, setActive] = useState(user?.isActive ?? user?.active ?? true);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     setUsername(user?.username || '');
     setEmail(user?.email || '');
     setRole(user?.role || 'EMPLOYEE');
-    setActive(Boolean(user?.active));
+    setActive(user?.isActive ?? user?.active ?? true);
     setMessage('');
   }, [user]);
 
@@ -53,7 +53,7 @@ const AdminUserDetails = ({ user, currentUserId, onBack }) => {
         username: username.trim(),
         email: email.trim(),
         role,
-        active,
+        isActive: active,
       }).unwrap();
 
       setMessage('User updated successfully.');
@@ -159,16 +159,44 @@ const AdminUserDetails = ({ user, currentUserId, onBack }) => {
             )}
           </div>
 
-          <div className="flex items-center rounded-lg border border-stone/80 px-4 py-3 dark:border-[#55595D]">
-            <label className="flex cursor-pointer items-center gap-3 text-sm font-medium">
-              <input
-                type="checkbox"
-                checked={active}
-                onChange={(event) => setActive(event.target.checked)}
-                className="h-4 w-4 accent-champagne"
-              />
-              Account active
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Account Status
             </label>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                aria-pressed={active === true}
+                onClick={() => setActive(true)}
+                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-semibold transition ${
+                  active === true
+                    ? 'border-green-600 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'border-stone/80 text-charcoal/70 hover:border-green-600 dark:border-[#55595D] dark:text-ivory/70'
+                }`}
+              >
+                Active
+              </button>
+
+              <button
+                type="button"
+                aria-pressed={active === false}
+                onClick={() => setActive(false)}
+                className={`flex-1 rounded-lg border px-4 py-3 text-sm font-semibold transition ${
+                  active === false
+                    ? 'border-red-600 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    : 'border-stone/80 text-charcoal/70 hover:border-red-600 dark:border-[#55595D] dark:text-ivory/70'
+                }`}
+              >
+                Inactive
+              </button>
+            </div>
+
+            <p className="mt-2 text-xs text-charcoal/60 dark:text-ivory/60">
+              {active
+                ? 'This account is enabled and can log in.'
+                : 'This account is disabled and cannot log in.'}
+            </p>
           </div>
         </div>
 

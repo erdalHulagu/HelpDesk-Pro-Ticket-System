@@ -8,15 +8,26 @@ const UserStatusOverview = ({
 }) => {
   const allUsers = Array.isArray(users) ? users : [];
 
-  const isUserActive = (user) =>
-  user.active === true ||
-  user.active === 'true' ||
-  user.isActive === true ||
-  user.isActive === 'true';
+  const getUserActiveStatus = (user) => {
+    const value = user.isActive ?? user.active ?? user.is_active;
 
-  const activeCount = allUsers.filter(isUserActive).length;
+    if (value === true || value === 'true' || value === 1 || value === '1') {
+      return true;
+    }
+
+    if (value === false || value === 'false' || value === 0 || value === '0') {
+      return false;
+    }
+
+    return null;
+  };
+
+  const activeCount = allUsers.filter(
+    (user) => getUserActiveStatus(user) === true
+  ).length;
+
   const inactiveCount = allUsers.filter(
-    (user) => user.active === false || user.active === 'false'
+    (user) => getUserActiveStatus(user) === false
   ).length;
 
   const activePercentage =
@@ -32,14 +43,13 @@ const UserStatusOverview = ({
   const isDisabled = isLoading || isError;
 
   const buttonClass = (selected, color) =>
-    `flex items-center gap-2 rounded-md border px-3 py-2 transition ${
-      selected
-        ? color === 'green'
-          ? 'border-green-500 bg-green-100 dark:bg-green-900/30'
-          : color === 'red'
-            ? 'border-red-500 bg-red-100 dark:bg-red-900/30'
-            : 'border-blue-500 bg-blue-100 dark:bg-blue-900/30'
-        : 'border-stone/70 bg-white hover:border-champagne dark:border-[#55595D] dark:bg-[#34383C]'
+    `flex items-center gap-2 rounded-md border px-3 py-2 transition ${selected
+      ? color === 'green'
+        ? 'border-green-500 bg-green-100 dark:bg-green-900/30'
+        : color === 'red'
+          ? 'border-red-500 bg-red-100 dark:bg-red-900/30'
+          : 'border-blue-500 bg-blue-100 dark:bg-blue-900/30'
+      : 'border-stone/70 bg-white hover:border-champagne dark:border-[#55595D] dark:bg-[#34383C]'
     } disabled:cursor-not-allowed disabled:opacity-50`;
 
   return (
