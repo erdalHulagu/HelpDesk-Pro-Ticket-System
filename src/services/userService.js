@@ -34,3 +34,41 @@ export const {
   useUpdateUserMutation,
   useGetITSupportUsersQuery,
 } = userApi;
+
+
+// Export users as Excel
+export const exportUsersExcel = async ({
+  token,
+  startDate,
+  endDate,
+}) => {
+  const params = new URLSearchParams();
+
+  if (startDate) {
+    params.append('startDate', startDate);
+  }
+
+  if (endDate) {
+    params.append('endDate', endDate);
+  }
+
+  const queryString = params.toString();
+
+  const url = queryString
+    ? `/api/export/users?${queryString}`
+    : '/api/export/users';
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Failed to export users.');
+  }
+
+  return response.blob();
+};

@@ -3,7 +3,7 @@ import AnnouncementManagement from '../admin/AnnouncementManagement';
 
 const ITManagerPanel = ({ onBack }) => {
     return (
-        <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden">
+        <div className="mx-auto  flex h-full w-full max-w-6xl flex-col overflow-hidden">
 
             <header className="mb-4 flex shrink-0 items-center justify-between border-b border-stone/80 pb-4 dark:border-[#55595D]">
                 <div>
@@ -29,7 +29,7 @@ const ITManagerPanel = ({ onBack }) => {
                 </button>
             </header>
 
-            <div className="min-h-0 flex-1 overflow-auto">
+            <div className="min-h-0 flex-1 notification-scrollbar overflow-auto">
                 <AnnouncementManagement />
             </div>
 
