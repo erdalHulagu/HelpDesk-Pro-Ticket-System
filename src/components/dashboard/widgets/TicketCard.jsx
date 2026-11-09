@@ -1,5 +1,5 @@
 
-const TicketCard = ({ ticket, showCreator, }) => {
+const TicketCard = ({ ticket, showCreator }) => {
   const statusStyles = {
     CLOSED:
       'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200',
@@ -29,107 +29,202 @@ const TicketCard = ({ ticket, showCreator, }) => {
     LOW: 'bg-emerald-500/70',
   };
 
-  const status = ticket.status || 'OPEN';
-  const priority = ticket.priority || 'LOW';
+  const slaStyles = {
+    ON_TRACK:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    AT_RISK:
+      'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    BREACHED:
+      'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+    COMPLETED:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+  };
+
+  const status = String(ticket.status || 'OPEN').toUpperCase();
+  const priority = String(ticket.priority || 'LOW').toUpperCase();
 
   const slaDueAt = ticket.slaDueAt
     ? new Date(ticket.slaDueAt)
     : null;
 
-  const isResolved =
-    ticket.status === 'RESOLVED' || ticket.status === 'CLOSED';
+  const hasValidSlaDate =
+    slaDueAt && !Number.isNaN(slaDueAt.getTime());
 
-  const isOverdue =
-    !isResolved &&
-    slaDueAt &&
-    !Number.isNaN(slaDueAt.getTime()) &&
-    slaDueAt.getTime() < Date.now();
+  const isResolved = ['RESOLVED', 'CLOSED'].includes(status);
+
+  const backendSlaStatus = String(ticket.slaStatus || '').toUpperCase();
+
+  const fallbackSlaStatus = !hasValidSlaDate
+    ? 'UNKNOWN'
+    : isResolved
+      ? 'COMPLETED'
+      : slaDueAt.getTime() < Date.now()
+        ? 'BREACHED'
+        : 'ON_TRACK';
+
+  const slaStatus = backendSlaStatus || fallbackSlaStatus;
+
+  const slaLabel = {
+    ON_TRACK: 'On Track',
+    AT_RISK: 'At Risk',
+    BREACHED: 'Breached',
+    COMPLETED: 'Completed',
+    UNKNOWN: 'No SLA',
+  }[slaStatus] || 'Unknown';
+
+  const formatDate = (value) => {
+    if (!value) return null;
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const createdAt = formatDate(ticket.createdAt);
+  const assignedTo =
+    ticket.assignedToUsername ||
+    ticket.assignedTo?.username ||
+    (ticket.assignedToId ? `User #${ticket.assignedToId}` : 'Unassigned');
 
   return (
-    <article className="group relative overflow-hidden rounded-lg border border-stone/60 bg-white/80 px-3 py-2 transition-colors hover:border-champagne/70 dark:border-[#55595D] dark:bg-[#34383C]">
+    <article className="group relative overflow-hidden rounded-xl border border-stone/60 bg-white/80 px-3 py-3 transition-all hover:border-champagne/80 hover:shadow-sm dark:border-[#55595D] dark:bg-[#34383C]">
+      {/* Priority indicator */}
       <div
-        className={`absolute bottom-2 left-0 top-2 w-0.5 rounded-r-full ${priorityIndicators[priority] || priorityIndicators.LOW
-          }`}
+        className={`absolute bottom-3 left-0 top-3 w-1 rounded-r-full ${
+          priorityIndicators[priority] || priorityIndicators.LOW
+        }`}
       />
 
       <div className="min-w-0 pl-2">
+        {/* Title and status */}
         <div className="flex min-w-0 items-start justify-between gap-2">
-          <h3 className="min-w-0 break-words text-[13px] font-semibold leading-5">
-            {ticket.title || 'Untitled ticket'}
-          </h3>
+          <div className="min-w-0">
+            <h3 className="break-words text-sm font-semibold leading-5 text-charcoal dark:text-ivory">
+              {ticket.title || 'Untitled ticket'}
+            </h3>
+
+            <p className="mt-0.5 text-[10px] text-charcoal/45 dark:text-ivory/45">
+              Ticket #{ticket.id}
+            </p>
+          </div>
 
           <span
-            className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusStyles[status] || statusStyles.OPEN
-              }`}
+            className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold ${
+              statusStyles[status] || statusStyles.OPEN
+            }`}
           >
             {status.replaceAll('_', ' ')}
           </span>
         </div>
 
-        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+        {/* Priority and category */}
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <span
-            className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${priorityStyles[priority] || priorityStyles.LOW
-              }`}
+            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+              priorityStyles[priority] || priorityStyles.LOW
+            }`}
           >
             {priority}
           </span>
 
           {ticket.category && (
-            <span className="text-[10px] text-charcoal/60 dark:text-ivory/60">
+            <span className="rounded-full border border-stone/60 px-2 py-0.5 text-[10px] text-charcoal/65 dark:border-[#55595D] dark:text-ivory/65">
               {ticket.category}
             </span>
           )}
         </div>
-        {slaDueAt && !Number.isNaN(slaDueAt.getTime()) && (
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
-            <span className="text-charcoal/60 dark:text-ivory/60">
-              SLA due:
-            </span>
 
-            <span className="font-medium text-charcoal dark:text-ivory">
-              {slaDueAt.toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </span>
-
-            {isResolved ? (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                Resolved
-              </span>
-            ) : isOverdue ? (
-              <span className="rounded-full bg-red-100 px-2 py-0.5 font-semibold text-red-800 dark:bg-red-900/40 dark:text-red-300">
-                Overdue
-              </span>
-            ) : (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                Within SLA
-              </span>
-            )}
-          </div>
-        )}
-
-        {showCreator && (
-          <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px]">
-            <span className="font-medium text-[#96743A] dark:text-[#fcfdfb]">
-              {ticket.createdByUsername || 'Unknown'}
-            </span>
-
-            {ticket.createdByRole && (
-              <span className="rounded-full bg-[#F4EAD4] px-1.5 py-0.5 text-[#80643A] dark:bg-[#524a3cce] dark:text-[#fcfdfb]">
-                {ticket.createdByRole.replaceAll('_', ' ')}
-              </span>
-            )}
-          </div>
-        )}
-
+        {/* Description */}
         {ticket.description && (
-          <p className="mt-1 line-clamp-2 break-words text-xs leading-4 text-charcoal/65 dark:text-ivory/65">
+          <p className="mt-2 line-clamp-2 break-words text-xs leading-5 text-charcoal/65 dark:text-ivory/65">
             {ticket.description}
           </p>
         )}
+
+        {/* SLA information */}
+        <div className="mt-3 rounded-lg border border-stone/50 bg-stone/5 px-2.5 py-2 dark:border-[#55595D] dark:bg-[#292D31]/50">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
+              SLA
+            </span>
+
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                slaStyles[slaStatus] ||
+                'bg-stone/20 text-charcoal/60 dark:text-ivory/60'
+              }`}
+            >
+              {slaLabel}
+            </span>
+          </div>
+
+          {hasValidSlaDate && (
+            <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1">
+              <span className="text-[10px] text-charcoal/55 dark:text-ivory/55">
+                Due: {formatDate(ticket.slaDueAt)}
+              </span>
+
+              {ticket.slaRemainingTime && (
+                <span className="text-[10px] font-medium text-charcoal/70 dark:text-ivory/70">
+                  {ticket.slaRemainingTime}
+                </span>
+              )}
+            </div>
+          )}
+
+          {!hasValidSlaDate && (
+            <p className="mt-1 text-[10px] text-charcoal/50 dark:text-ivory/50">
+              SLA deadline not available
+            </p>
+          )}
+        </div>
+
+        {/* People and creation date */}
+        <div className="mt-3 grid grid-cols-1 gap-1.5">
+          {showCreator && (
+            <div className="flex min-w-0 items-center justify-between gap-2 text-[10px]">
+              <span className="shrink-0 text-charcoal/50 dark:text-ivory/50">
+                Created by
+              </span>
+
+              <span className="truncate font-medium text-charcoal dark:text-ivory">
+                {ticket.createdByUsername || 'Unknown'}
+                {ticket.createdByRole &&
+                  ` · ${ticket.createdByRole.replaceAll('_', ' ')}`}
+              </span>
+            </div>
+          )}
+
+          <div className="flex min-w-0 items-center justify-between gap-2 text-[10px]">
+            <span className="shrink-0 text-charcoal/50 dark:text-ivory/50">
+              Assigned to
+            </span>
+
+            <span className="truncate font-medium text-charcoal dark:text-ivory">
+              {assignedTo}
+            </span>
+          </div>
+
+          {createdAt && (
+            <div className="flex min-w-0 items-center justify-between gap-2 text-[10px]">
+              <span className="shrink-0 text-charcoal/50 dark:text-ivory/50">
+                Created
+              </span>
+
+              <span className="truncate text-charcoal/70 dark:text-ivory/70">
+                {createdAt}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </article>
   );

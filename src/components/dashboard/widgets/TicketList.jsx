@@ -13,6 +13,95 @@ import {
 
 import { useGetITSupportUsersQuery } from '../../../services/userService.js';
 
+const formatDate = (value) => {
+  if (!value) return 'Not available';
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return 'Not available';
+
+  return date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+const getSlaDisplay = (ticket) => {
+  if (!ticket) {
+    return { label: 'Unknown', className: 'bg-stone/20 text-charcoal/60' };
+  }
+
+  const status = String(ticket.slaStatus || '').toUpperCase();
+
+  if (status === 'COMPLETED') {
+    return {
+      label: 'Completed',
+      className:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    };
+  }
+
+  if (status === 'BREACHED') {
+    return {
+      label: 'Breached',
+      className:
+        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+    };
+  }
+
+  if (status === 'AT_RISK') {
+    return {
+      label: 'At Risk',
+      className:
+        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    };
+  }
+
+  if (status === 'ON_TRACK') {
+    return {
+      label: 'On Track',
+      className:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    };
+  }
+
+  const resolved = ['RESOLVED', 'CLOSED'].includes(ticket.status);
+
+  if (resolved) {
+    return {
+      label: 'Completed',
+      className:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    };
+  }
+
+  if (ticket.slaDueAt) {
+    const dueDate = new Date(ticket.slaDueAt);
+
+    if (!Number.isNaN(dueDate.getTime()) && dueDate.getTime() < Date.now()) {
+      return {
+        label: 'Overdue',
+        className:
+          'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+      };
+    }
+
+    return {
+      label: 'Within SLA',
+      className:
+        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    };
+  }
+
+  return {
+    label: 'Unknown',
+    className: 'bg-stone/20 text-charcoal/60 dark:text-ivory/60',
+  };
+};
+
 const TicketList = ({
   tickets,
   isLoading,
@@ -51,7 +140,6 @@ const TicketList = ({
     skip: !canAssign,
   });
 
-  // Search, priority and dashboard status filters
   const visibleTickets = ticketList.filter((ticket) => {
     const search = searchTerm.trim().toLowerCase();
 
@@ -83,26 +171,19 @@ const TicketList = ({
     (ticket) => String(ticket.id) === String(selectedTicketId)
   );
 
-  // Handle ticket selection from Dashboard
   useEffect(() => {
     if (externalSelectedTicketId == null) return;
 
     const targetTicket = ticketList.find(
-      (ticket) =>
-        String(ticket.id) === String(externalSelectedTicketId)
+      (ticket) => String(ticket.id) === String(externalSelectedTicketId)
     );
 
     if (targetTicket) {
       setSelectedTicketId(targetTicket.id);
       onTicketSelectionHandled?.();
     }
-  }, [
-    externalSelectedTicketId,
-    ticketList,
-    onTicketSelectionHandled,
-  ]);
+  }, [externalSelectedTicketId, ticketList, onTicketSelectionHandled]);
 
-  // Clear selection if ticket no longer exists
   useEffect(() => {
     if (
       selectedTicketId !== null &&
@@ -114,7 +195,6 @@ const TicketList = ({
     }
   }, [selectedTicketId, ticketList]);
 
-  // Update assigned user when selected ticket changes
   useEffect(() => {
     setAssignedToId(
       selectedTicket?.assignedToId
@@ -123,7 +203,6 @@ const TicketList = ({
     );
   }, [selectedTicket?.id, selectedTicket?.assignedToId]);
 
-  // Clear selected ticket details when hidden by filters
   useEffect(() => {
     if (externalSelectedTicketId != null) return;
 
@@ -135,11 +214,7 @@ const TicketList = ({
     ) {
       setSelectedTicketId(null);
     }
-  }, [
-    selectedTicketId,
-    visibleTickets,
-    externalSelectedTicketId,
-  ]);
+  }, [selectedTicketId, visibleTickets, externalSelectedTicketId]);
 
   const handleStatusChange = async (event) => {
     if (!selectedTicket) return;
@@ -189,23 +264,18 @@ const TicketList = ({
     'mt-1 w-full rounded-lg border border-stone/70 bg-white px-3 py-2 text-sm text-charcoal outline-none transition focus:border-champagne focus:ring-2 focus:ring-champagne/30 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#55595D] dark:bg-[#292D31] dark:text-ivory';
 
   const labelClassName =
-    'text-xs font-medium text-charcoal/65 dark:text-ivory/65';
+    'text-[10px] font-semibold uppercase tracking-wider text-charcoal/50 dark:text-ivory/50';
 
-  const slaDueAt = selectedTicket?.slaDueAt
-    ? new Date(selectedTicket.slaDueAt)
-    : null;
+  const slaDisplay = getSlaDisplay(selectedTicket);
 
-  const hasValidSlaDate =
-    slaDueAt && !Number.isNaN(slaDueAt.getTime());
-
-  const isResolved = ['RESOLVED', 'CLOSED'].includes(
-    selectedTicket?.status
+  const InfoItem = ({ label, value }) => (
+    <div className="min-w-0 rounded-lg bg-stone/10 px-3 py-2 dark:bg-[#292D31]/60">
+      <p className={labelClassName}>{label}</p>
+      <p className="mt-1 break-words text-sm font-medium text-charcoal dark:text-ivory">
+        {value || 'Not available'}
+      </p>
+    </div>
   );
-
-  const isOverdue =
-    hasValidSlaDate &&
-    !isResolved &&
-    slaDueAt.getTime() < Date.now();
 
   return (
     <section className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -222,9 +292,8 @@ const TicketList = ({
           <p className="mt-0.5 text-xs text-charcoal/60 dark:text-ivory/60">
             {isLoading
               ? 'Loading tickets...'
-              : `${ticketList.length} ${
-                  ticketList.length === 1 ? 'ticket' : 'tickets'
-                }`}
+              : `${ticketList.length} ${ticketList.length === 1 ? 'ticket' : 'tickets'
+              }`}
           </p>
         </div>
 
@@ -233,7 +302,6 @@ const TicketList = ({
         </span>
       </header>
 
-      {/* Search and Priority filters */}
       <div className="mb-3 grid shrink-0 grid-cols-1 gap-2 rounded-lg border border-stone/60 bg-stone/5 p-2 dark:border-[#55595D] dark:bg-[#292D31]/40 sm:grid-cols-[minmax(0,1fr)_170px]">
         <input
           type="search"
@@ -279,8 +347,8 @@ const TicketList = ({
         </p>
       )}
 
-      {!isLoading && !isError && ticketList.length > 0 && (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      {!isLoading && !isError && visibleTickets.length > 0 && (
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
           {/* Ticket list */}
           <div className="ticket-scrollbar min-h-0 space-y-2 overflow-y-auto overscroll-contain pr-1">
             <p className="sticky top-0 z-10 bg-white/95 py-1 text-[10px] font-semibold uppercase tracking-wider text-charcoal/50 backdrop-blur dark:bg-[#34383C]/95 dark:text-ivory/50">
@@ -297,16 +365,12 @@ const TicketList = ({
                   type="button"
                   onClick={() => setSelectedTicketId(ticket.id)}
                   aria-pressed={isSelected}
-                  className={`block w-full rounded-xl text-left outline-none transition focus-visible:ring-2 focus-visible:ring-champagne ${
-                    isSelected
-                      ? 'rounded-xl ring-2 ring-champagne/70'
-                      : 'hover:opacity-90'
-                  }`}
+                  className={`block w-full rounded-xl text-left outline-none transition focus-visible:ring-2 focus-visible:ring-champagne ${isSelected
+                    ? 'ring-2 ring-champagne/70'
+                    : 'hover:opacity-90'
+                    }`}
                 >
-                  <TicketCard
-                    ticket={ticket}
-                    showCreator={showCreator}
-                  />
+                  <TicketCard ticket={ticket} showCreator={showCreator} />
                 </button>
               );
             })}
@@ -333,215 +397,249 @@ const TicketList = ({
               </div>
             ) : (
               <div className="space-y-4">
+                {/* Overview */}
                 <div className="border-b border-stone/60 pb-3 dark:border-[#55595D]">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
-                    Ticket details
-                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className={labelClassName}>Ticket overview</p>
 
-                  <h3 className="mt-1 break-words text-base font-semibold text-charcoal dark:text-ivory">
+                    <span className="rounded-full bg-stone/20 px-2.5 py-1 text-[10px] font-semibold text-charcoal/70 dark:bg-[#41464B] dark:text-ivory/70">
+                      #{selectedTicket.id}
+                    </span>
+                  </div>
+
+                  <h3 className="mt-2 break-words text-lg font-semibold text-charcoal dark:text-ivory">
                     {selectedTicket.title || 'Untitled ticket'}
                   </h3>
 
                   <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-charcoal/75 dark:text-ivory/75">
                     {selectedTicket.description || 'No description provided.'}
                   </p>
+                </div>
+
+                {/* Ticket properties */}
+                <div>
+                  <p className={`${labelClassName} mb-2`}>Ticket information</p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <InfoItem
+                      label="Status"
+                      value={String(selectedTicket.status || 'OPEN').replaceAll('_', ' ')}
+                    />
+
+                    <InfoItem
+                      label="Priority"
+                      value={selectedTicket.priority || 'Not available'}
+                    />
+
+                    <InfoItem
+                      label="Category"
+                      value={selectedTicket.category || 'Not specified'}
+                    />
+
+                    <InfoItem
+                      label="Created"
+                      value={formatDate(selectedTicket.createdAt)}
+                    />
+                  </div>
+                </div>
+
+                {/* SLA */}
+                <div className="rounded-xl border border-stone/60 bg-white/60 p-3 dark:border-[#55595D] dark:bg-[#292D31]/60">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className={labelClassName}>Service Level Agreement</p>
+                      <p className="mt-1 text-sm font-semibold text-charcoal dark:text-ivory">
+                        SLA Overview
+                      </p>
+                    </div>
+
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${slaDisplay.className}`}
+                    >
+                      {slaDisplay.label}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <p className={labelClassName}>Deadline</p>
+                      <p className="mt-1 text-sm font-medium text-charcoal dark:text-ivory">
+                        {formatDate(selectedTicket.slaDueAt)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className={labelClassName}>Remaining time</p>
+                      <p className="mt-1 text-sm font-medium text-charcoal dark:text-ivory">
+                        {selectedTicket.slaRemainingTime ||
+                          (['RESOLVED', 'CLOSED'].includes(selectedTicket.status)
+                            ? 'Completed'
+                            : selectedTicket.slaDueAt
+                              ? 'See deadline'
+                              : 'Not available')}
+                      </p>
+                    </div>
+
+                    {selectedTicket.resolvedAt && (
+                      <div className="sm:col-span-2">
+                        <p className={labelClassName}>Resolved at</p>
+                        <p className="mt-1 text-sm font-medium text-charcoal dark:text-ivory">
+                          {formatDate(selectedTicket.resolvedAt)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* People */}
+                <div>
+                  <p className={`${labelClassName} mb-2`}>People</p>
+
+
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {showCreator && (
+                      <InfoItem
+                        label="Created by"
+                        value={selectedTicket.createdByUsername || 'Unknown'}
+                      />
+                    )}
+
+                    <InfoItem
+                      label="Assigned to"
+                      value={
+                        selectedTicket.assignedToUsername ||
+                        itSupportUsers.find(
+                          (user) =>
+                            Number(user.id) === Number(selectedTicket.assignedToId)
+                        )?.username ||
+                        'Unassigned'
+                      }
+                    />
+                  </div>
+
+                  {showCreator && selectedTicket.createdByRole && (
+                    <p className="mt-2 text-xs text-charcoal/55 dark:text-ivory/55">
+                      Creator role:{' '}
+                      {selectedTicket.createdByRole.replaceAll('_', ' ')}
+                    </p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="rounded-xl border border-stone/60 bg-white/60 p-3 dark:border-[#55595D] dark:bg-[#292D31]/60">
+                  <p className={`${labelClassName} mb-3`}>Ticket actions</p>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div>
+                      <label
+                        htmlFor={`status-${selectedTicket.id}`}
+                        className={labelClassName}
+                      >
+                        Update status
+                      </label>
+
+                      <select
+                        id={`status-${selectedTicket.id}`}
+                        value={selectedTicket.status || 'OPEN'}
+                        disabled={isUpdatingStatus}
+                        onChange={handleStatusChange}
+                        className={selectClassName}
+                      >
+                        <option value="OPEN">Open</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                      </select>
+
+                      {isUpdatingStatus && (
+                        <p className="mt-1 text-xs text-charcoal/55 dark:text-ivory/55">
+                          Updating status...
+                        </p>
+                      )}
+                    </div>
+
+                    {canAssign && (
+                      <div>
+                        <label className={labelClassName}>
+                          Assign to IT Support
+                        </label>
+
+                        {isLoadingITSupport ? (
+                          <p className="mt-2 text-sm text-charcoal/60 dark:text-ivory/60">
+                            Loading support users...
+                          </p>
+                        ) : isITSupportError ? (
+                          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                            Unable to load IT Support users.
+                          </p>
+                        ) : (
+                          <>
+                            <select
+                              value={assignedToId}
+                              onChange={(event) =>
+                                setAssignedToId(event.target.value)
+                              }
+                              disabled={isAssigning}
+                              className={selectClassName}
+                            >
+                              <option value="">
+                                Select an IT Support user
+                              </option>
+
+                              {itSupportUsers.map((supportUser) => (
+                                <option
+                                  key={supportUser.id}
+                                  value={supportUser.id}
+                                >
+                                  {supportUser.username}
+                                </option>
+                              ))}
+                            </select>
+
+                            <button
+                              type="button"
+                              onClick={handleAssignTicket}
+                              disabled={
+                                !assignedToId ||
+                                isAssigning ||
+                                String(selectedTicket.assignedToId || '') ===
+                                assignedToId
+                              }
+                              className="mt-2 w-full rounded-lg bg-champagne px-3 py-2 text-sm font-semibold text-charcoal transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              {isAssigning ? 'Assigning...' : 'Assign Ticket'}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {canAssign && itSupportUsers.length === 0 && !isLoadingITSupport && !isITSupportError && (
+                    <p className="mt-2 text-xs text-charcoal/60 dark:text-ivory/60">
+                      No active IT Support users found.
+                    </p>
+                  )}
 
                   {canAssign && (
                     <button
                       type="button"
                       onClick={handleDeleteTicket}
                       disabled={isDeleting}
-                      className="mt-4 rounded-lg border border-red-300 bg-red-50 px-1 py-0.5 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
+                      className="mt-3 w-full rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
                     >
                       {isDeleting ? 'Deleting...' : 'Delete Ticket'}
                     </button>
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                  <div>
-                    <label
-                      htmlFor={`status-${selectedTicket.id}`}
-                      className={labelClassName}
-                    >
-                      Status
-                    </label>
-
-                    <select
-                      id={`status-${selectedTicket.id}`}
-                      value={selectedTicket.status || 'OPEN'}
-                      disabled={isUpdatingStatus}
-                      onChange={handleStatusChange}
-                      className={selectClassName}
-                    >
-                      <option value="OPEN">Open</option>
-                      <option value="IN_PROGRESS">In Progress</option>
-                      <option value="RESOLVED">Resolved</option>
-                      <option value="CLOSED">Closed</option>
-                    </select>
-
-                    {isUpdatingStatus && (
-                      <p className="mt-1 text-xs text-charcoal/55 dark:text-ivory/55">
-                        Updating status...
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor={`priority-${selectedTicket.id}`}
-                      className={labelClassName}
-                    >
-                      Priority
-                    </label>
-
-                    <input
-                      id={`priority-${selectedTicket.id}`}
-                      value={selectedTicket.priority || 'LOW'}
-                      readOnly
-                      className={selectClassName}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2 lg:col-span-1 xl:col-span-2">
-                    <label
-                      htmlFor={`category-${selectedTicket.id}`}
-                      className={labelClassName}
-                    >
-                      Category
-                    </label>
-
-                    <input
-                      id={`category-${selectedTicket.id}`}
-                      value={selectedTicket.category || ''}
-                      readOnly
-                      className={selectClassName}
-                    />
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-stone/60 px-3 py-3 dark:border-[#55595D]">
-                  <p className={labelClassName}>
-                    Service Level Agreement
-                  </p>
-
-                  {hasValidSlaDate ? (
-                    <>
-                      <p className="mt-1 text-sm font-medium text-charcoal dark:text-ivory">
-                        SLA due:{' '}
-                        {slaDueAt.toLocaleString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-
-                      <span
-                        className={`mt-2 inline-block rounded-full px-2 py-1 text-xs font-semibold ${
-                          isResolved
-                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : isOverdue
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
-                              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                        }`}
-                      >
-                        {isResolved
-                          ? 'Resolved'
-                          : isOverdue
-                            ? 'Overdue'
-                            : 'Within SLA'}
-                      </span>
-                    </>
-                  ) : (
-                    <p className="mt-1 text-sm text-charcoal/60 dark:text-ivory/60">
-                      SLA deadline not available.
-                    </p>
-                  )}
-                </div>
-
-                {showCreator && (
-                  <div className="rounded-lg border border-stone/60 px-3 py-2 dark:border-[#55595D]">
-                    <p className={labelClassName}>Created by</p>
-
-                    <p className="mt-1 break-words text-sm font-medium text-charcoal dark:text-ivory">
-                      {selectedTicket.createdByUsername || 'Unknown'}
-                    </p>
-
-                    {selectedTicket.createdByRole && (
-                      <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
-                        {selectedTicket.createdByRole.replaceAll('_', ' ')}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {canAssign && (
-                  <div className="rounded-lg border border-stone/60 p-3 dark:border-[#55595D]">
-                    <p className={labelClassName}>
-                      Assign ticket to IT Support
-                    </p>
-
-                    {isLoadingITSupport ? (
-                      <p className="mt-2 text-sm text-charcoal/60 dark:text-ivory/60">
-                        Loading support users...
-                      </p>
-                    ) : isITSupportError ? (
-                      <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                        Unable to load IT Support users.
-                      </p>
-                    ) : (
-                      <>
-                        <select
-                          value={assignedToId}
-                          onChange={(event) =>
-                            setAssignedToId(event.target.value)
-                          }
-                          disabled={isAssigning}
-                          className={selectClassName}
-                        >
-                          <option value="">
-                            Select an IT Support user
-                          </option>
-
-                          {itSupportUsers.map((supportUser) => (
-                            <option
-                              key={supportUser.id}
-                              value={supportUser.id}
-                            >
-                              {supportUser.username}
-                            </option>
-                          ))}
-                        </select>
-
-                        <button
-                          type="button"
-                          onClick={handleAssignTicket}
-                          disabled={
-                            !assignedToId ||
-                            isAssigning ||
-                            String(selectedTicket.assignedToId || '') === assignedToId
-                          }
-                          className="mt-3 w-full rounded-lg bg-champagne px-4 py-2 text-sm font-semibold text-charcoal transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {isAssigning ? 'Assigning...' : 'Assign Ticket'}
-                        </button>
-
-                        {itSupportUsers.length === 0 && (
-                          <p className="mt-2 text-xs text-charcoal/60 dark:text-ivory/60">
-                            No active IT Support users found.
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-
+                {/* Comments */}
                 <div className="border-t border-stone/60 pt-3 dark:border-[#55595D]">
-                  <h4 className="mb-3 text-sm font-semibold text-charcoal dark:text-ivory">
-                    Comments
-                  </h4>
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="text-sm font-semibold text-charcoal dark:text-ivory">
+                      Comments
+                    </h4>
+                  </div>
 
                   <TicketComments
                     ticketId={selectedTicket.id}

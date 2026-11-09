@@ -73,8 +73,10 @@ const TicketComments = ({ ticketId, token }) => {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    return () =>
+
+    return () => {
       document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isModalOpen, submitting]);
 
   const commentCounts = comments.reduce((result, comment) => {
@@ -223,17 +225,24 @@ const TicketComments = ({ ticketId, token }) => {
 
   return (
     <section className="ticket-comments">
+      {/* Comments summary */}
       <div className="rounded-xl border border-stone/60 bg-white p-3 dark:border-[#55595D] dark:bg-[#292D31]">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h4 className="text-sm font-semibold text-charcoal dark:text-ivory">
-              Comments
-            </h4>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-charcoal dark:text-ivory">
+                Comments
+              </h4>
+
+              <span className="rounded-full bg-champagne/20 px-2 py-0.5 text-[10px] font-semibold text-charcoal dark:text-ivory">
+                {comments.length}
+              </span>
+            </div>
+
             <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
               {loading
                 ? "Loading comments..."
-                : `${comments.length} ${comments.length === 1 ? "comment" : "comments"
-                }`}
+                : "Discussion and ticket updates"}
             </p>
           </div>
 
@@ -244,7 +253,8 @@ const TicketComments = ({ ticketId, token }) => {
               setError("");
               setSuccess("");
             }}
-            className="shrink-0 rounded-md bg-champagne px-2 py-1 text-[30px]  text-charcoal transition hover:opacity-90">
+            className="shrink-0 rounded-lg bg-champagne px-3 py-2 text-xs font-semibold text-charcoal transition hover:opacity-90"
+          >
             View Comments
           </button>
         </div>
@@ -256,7 +266,7 @@ const TicketComments = ({ ticketId, token }) => {
         )}
 
         {!loading && comments.length === 0 && !error && (
-          <p className="mt-3 text-sm text-charcoal/60 dark:text-ivory/60 ">
+          <p className="mt-3 rounded-lg bg-stone/10 px-3 py-3 text-center text-xs text-charcoal/60 dark:bg-white/5 dark:text-ivory/60">
             No comments yet.
           </p>
         )}
@@ -268,18 +278,25 @@ const TicketComments = ({ ticketId, token }) => {
                 key={author.name}
                 className="flex items-center justify-between gap-3 rounded-lg bg-stone/10 px-3 py-2 dark:bg-white/5"
               >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-charcoal dark:text-ivory">
-                    {author.name}
-                  </p>
-                  {author.role && (
-                    <p className="text-xs text-charcoal/60 dark:text-ivory/60">
-                      {author.role.replaceAll("_", " ")}
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-champagne/20 text-xs font-semibold text-charcoal dark:text-ivory">
+                    {author.name.slice(0, 1).toUpperCase()}
+                  </span>
+
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-semibold text-charcoal dark:text-ivory">
+                      {author.name}
                     </p>
-                  )}
+
+                    {author.role && (
+                      <p className="text-[10px] text-charcoal/60 dark:text-ivory/60">
+                        {author.role.replaceAll("_", " ")}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                <span className="shrink-0 rounded-full border border-champagne/40 px-2.5 py-1 text-xs font-semibold text-charcoal dark:text-ivory">
+                <span className="shrink-0 rounded-full border border-champagne/40 px-2 py-1 text-[10px] font-semibold text-charcoal dark:text-ivory">
                   {author.count}{" "}
                   {author.count === 1 ? "comment" : "comments"}
                 </span>
@@ -289,6 +306,7 @@ const TicketComments = ({ ticketId, token }) => {
         )}
       </div>
 
+      {/* Comments modal */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-3 backdrop-blur-sm sm:p-6"
@@ -305,19 +323,26 @@ const TicketComments = ({ ticketId, token }) => {
             role="dialog"
             aria-modal="true"
             aria-labelledby={`comments-modal-title-${ticketId}`}
-            className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-stone/60 bg-white shadow-2xl dark:border-[#55595D] dark:bg-[#292D31]"
+            className="flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-stone/60 bg-white shadow-2xl dark:border-[#55595D] dark:bg-[#292D31]"
           >
-            <header className="flex items-center justify-between gap-4 border-b border-stone/60 px-4 py-4 dark:border-[#55595D] sm:px-6">
+            {/* Modal header */}
+            <header className="flex shrink-0 items-center justify-between gap-4 border-b border-stone/60 px-4 py-4 dark:border-[#55595D] sm:px-6">
               <div>
-                <h2
-                  id={`comments-modal-title-${ticketId}`}
-                  className="text-lg font-semibold text-charcoal dark:text-ivory"
-                >
-                  Ticket Comments
-                </h2>
+                <div className="flex items-center gap-2">
+                  <h2
+                    id={`comments-modal-title-${ticketId}`}
+                    className="text-lg font-semibold text-charcoal dark:text-ivory"
+                  >
+                    Ticket Comments
+                  </h2>
+
+                  <span className="rounded-full bg-champagne/20 px-2 py-0.5 text-xs font-semibold text-charcoal dark:text-ivory">
+                    {comments.length}
+                  </span>
+                </div>
+
                 <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
-                  {comments.length}{" "}
-                  {comments.length === 1 ? "comment" : "comments"}
+                  Ticket #{ticketId} · Discussion history
                 </p>
               </div>
 
@@ -332,6 +357,7 @@ const TicketComments = ({ ticketId, token }) => {
               </button>
             </header>
 
+            {/* Scrollable content */}
             <div className="ticket-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
               {error && (
                 <p
@@ -362,6 +388,7 @@ const TicketComments = ({ ticketId, token }) => {
                   <p className="text-sm font-medium text-charcoal dark:text-ivory">
                     No comments yet
                   </p>
+
                   <p className="mt-1 text-xs text-charcoal/60 dark:text-ivory/60">
                     Add the first comment below.
                   </p>
@@ -376,7 +403,7 @@ const TicketComments = ({ ticketId, token }) => {
                 return (
                   <article
                     key={comment.id}
-                    className="rounded-xl border border-stone/60 p-4 dark:border-[#55595D]"
+                    className="rounded-xl border border-stone/60 bg-white p-4 dark:border-[#55595D] dark:bg-[#34383C]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
@@ -390,6 +417,7 @@ const TicketComments = ({ ticketId, token }) => {
                           <p className="break-words text-sm font-semibold text-charcoal dark:text-ivory">
                             {comment.authorUsername || "Unknown user"}
                           </p>
+
                           <p className="mt-0.5 text-xs text-charcoal/60 dark:text-ivory/60">
                             {(comment.authorRole || "User").replaceAll(
                               "_",
@@ -405,6 +433,7 @@ const TicketComments = ({ ticketId, token }) => {
                             Internal
                           </span>
                         )}
+
                         <p className="text-xs text-charcoal/50 dark:text-ivory/50">
                           {formatDate(comment.createdAt)}
                         </p>
@@ -418,19 +447,22 @@ const TicketComments = ({ ticketId, token }) => {
                     )}
 
                     {attachments.length > 0 && (
-                      <div className="mt-4 space-y-2">
-                        <p className="text-xs font-medium text-charcoal/60 dark:text-ivory/60">
+                      <div className="mt-4 space-y-2 border-t border-stone/50 pt-3 dark:border-[#55595D]">
+                        <p className="text-xs font-semibold text-charcoal/60 dark:text-ivory/60">
                           Attachments ({attachments.length})
                         </p>
 
                         {attachments.map((attachment) => {
                           const fileName =
                             attachment.fileName || "Attachment";
+
                           const fileType =
                             attachment.fileType ||
                             attachment.contentType ||
                             "";
+
                           const isImage = fileType.startsWith("image/");
+
                           const isPdf =
                             fileType === "application/pdf" ||
                             fileName.toLowerCase().endsWith(".pdf");
@@ -448,10 +480,12 @@ const TicketComments = ({ ticketId, token }) => {
                                       ? "📕"
                                       : "📎"}
                                 </span>
+
                                 <div className="min-w-0">
                                   <p className="break-words text-sm font-medium text-charcoal dark:text-ivory">
                                     {fileName}
                                   </p>
+
                                   <p className="text-xs text-charcoal/60 dark:text-ivory/60">
                                     {fileType || "File"}
                                   </p>
@@ -461,7 +495,7 @@ const TicketComments = ({ ticketId, token }) => {
                               <button
                                 type="button"
                                 onClick={() => handleDownload(attachment)}
-                                className="shrink-0 rounded-lg border border-stone/90 px-3 py-1.5 text-xs font-medium text-charcoal hover:bg-stone/50 dark:border-[#55595D] dark:text-ivory"
+                                className="shrink-0 rounded-lg border border-stone/90 px-3 py-1.5 text-xs font-medium text-charcoal transition hover:bg-stone/50 dark:border-[#55595D] dark:text-ivory"
                               >
                                 Download
                               </button>
@@ -474,6 +508,7 @@ const TicketComments = ({ ticketId, token }) => {
                 );
               })}
 
+              {/* Add comment */}
               <div className="border-t border-stone/60 pt-5 dark:border-[#55595D]">
                 <h3 className="mb-3 text-sm font-semibold text-charcoal dark:text-ivory">
                   Add a comment
@@ -491,7 +526,7 @@ const TicketComments = ({ ticketId, token }) => {
                     rows={4}
                     maxLength={5000}
                     placeholder="Write your comment..."
-                    className="w-full rounded-lg border border-stone/70 bg-white p-3 text-sm text-charcoal outline-none focus:border-champagne focus:ring-2 focus:ring-champagne/30 dark:border-[#55595D] dark:bg-[#25282B] dark:text-ivory"
+                    className="w-full rounded-lg border border-stone/70 bg-white p-3 text-sm text-charcoal outline-none transition focus:border-champagne focus:ring-2 focus:ring-champagne/30 dark:border-[#55595D] dark:bg-[#25282B] dark:text-ivory"
                   />
 
                   <input
@@ -509,7 +544,7 @@ const TicketComments = ({ ticketId, token }) => {
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={submitting}
-                      className="rounded-lg border border-stone/70 px-3 py-2 text-xs font-medium text-charcoal hover:bg-stone/10 disabled:opacity-50 dark:border-[#55595D] dark:text-ivory"
+                      className="rounded-lg border border-stone/70 px-3 py-2 text-xs font-medium text-charcoal transition hover:bg-stone/10 disabled:opacity-50 dark:border-[#55595D] dark:text-ivory"
                     >
                       📎 Attach photos or files
                     </button>
@@ -534,6 +569,7 @@ const TicketComments = ({ ticketId, token }) => {
                             <p className="truncate text-sm text-charcoal dark:text-ivory">
                               {file.name}
                             </p>
+
                             <p className="text-xs text-charcoal/60 dark:text-ivory/60">
                               {(file.size / 1024).toFixed(1)} KB
                             </p>
@@ -543,7 +579,7 @@ const TicketComments = ({ ticketId, token }) => {
                             type="button"
                             onClick={() => removeFile(index)}
                             disabled={submitting}
-                            className="shrink-0 rounded px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            className="shrink-0 rounded px-2 py-1 text-xs text-red-600 transition hover:bg-red-50 disabled:opacity-50"
                           >
                             Remove
                           </button>
