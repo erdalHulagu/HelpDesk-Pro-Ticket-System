@@ -30,75 +30,89 @@ const formatDate = (value) => {
 };
 
 const getSlaDisplay = (ticket) => {
+  const styles = {
+    COMPLETED_ON_TIME:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    COMPLETED_LATE:
+      'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+    COMPLETED:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    ON_TRACK:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    AT_RISK:
+      'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+    BREACHED:
+      'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+    UNKNOWN:
+      'bg-stone/20 text-charcoal/60 dark:bg-[#41464B] dark:text-ivory/60',
+  };
+
+  const labels = {
+    COMPLETED_ON_TIME: 'Completed on Time',
+    COMPLETED_LATE: 'Completed Late',
+    COMPLETED: 'Completed',
+    ON_TRACK: 'On Track',
+    AT_RISK: 'At Risk',
+    BREACHED: 'Breached',
+    UNKNOWN: 'Unknown',
+  };
+
   if (!ticket) {
-    return { label: 'Unknown', className: 'bg-stone/20 text-charcoal/60' };
-  }
-
-  const status = String(ticket.slaStatus || '').toUpperCase();
-
-  if (status === 'COMPLETED') {
     return {
-      label: 'Completed',
-      className:
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+      label: 'Unknown',
+      className: styles.UNKNOWN,
     };
   }
 
-  if (status === 'BREACHED') {
-    return {
-      label: 'Breached',
-      className:
-        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-    };
-  }
+  let status = String(ticket.slaStatus || '').toUpperCase();
 
-  if (status === 'AT_RISK') {
-    return {
-      label: 'At Risk',
-      className:
-        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
-    };
-  }
+  // Backend status yoksa frontend tarafında hesapla.
+  if (!status || status === 'UNKNOWN') {
+    const isCompleted = ['RESOLVED', 'CLOSED'].includes(
+      String(ticket.status || '').toUpperCase()
+    );
 
-  if (status === 'ON_TRACK') {
-    return {
-      label: 'On Track',
-      className:
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-    };
-  }
+    if (isCompleted) {
+      if (!ticket.resolvedAt || !ticket.slaDueAt) {
+        status = 'COMPLETED';
+      } else {
+        const resolvedDate = new Date(ticket.resolvedAt);
+        const deadline = new Date(ticket.slaDueAt);
 
-  const resolved = ['RESOLVED', 'CLOSED'].includes(ticket.status);
+        if (
+          Number.isNaN(resolvedDate.getTime()) ||
+          Number.isNaN(deadline.getTime())
+        ) {
+          status = 'COMPLETED';
+        } else {
+          status =
+            resolvedDate.getTime() <= deadline.getTime()
+              ? 'COMPLETED_ON_TIME'
+              : 'COMPLETED_LATE';
+        }
+      }
+    } else if (ticket.slaDueAt) {
+      const deadline = new Date(ticket.slaDueAt);
 
-  if (resolved) {
-    return {
-      label: 'Completed',
-      className:
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-    };
-  }
-
-  if (ticket.slaDueAt) {
-    const dueDate = new Date(ticket.slaDueAt);
-
-    if (!Number.isNaN(dueDate.getTime()) && dueDate.getTime() < Date.now()) {
-      return {
-        label: 'Overdue',
-        className:
-          'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-      };
+      if (Number.isNaN(deadline.getTime())) {
+        status = 'UNKNOWN';
+      } else if (Date.now() > deadline.getTime()) {
+        status = 'BREACHED';
+      } else if (
+        Date.now() >= deadline.getTime() - 60 * 60 * 1000
+      ) {
+        status = 'AT_RISK';
+      } else {
+        status = 'ON_TRACK';
+      }
+    } else {
+      status = 'UNKNOWN';
     }
-
-    return {
-      label: 'Within SLA',
-      className:
-        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
-    };
   }
 
   return {
-    label: 'Unknown',
-    className: 'bg-stone/20 text-charcoal/60 dark:text-ivory/60',
+    label: labels[status] || 'Unknown',
+    className: styles[status] || styles.UNKNOWN,
   };
 };
 

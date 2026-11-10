@@ -24,6 +24,7 @@ export const api = createApi({
     'ProfilePhoto',
     'Notification',
     'Announcement',
+    'Asset',
    
   ],
   endpoints: () => ({}),

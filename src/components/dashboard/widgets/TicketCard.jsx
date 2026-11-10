@@ -1,4 +1,3 @@
-
 const TicketCard = ({ ticket, showCreator }) => {
   const statusStyles = {
     CLOSED:
@@ -32,12 +31,24 @@ const TicketCard = ({ ticket, showCreator }) => {
   const slaStyles = {
     ON_TRACK:
       'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+
     AT_RISK:
       'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
+
     BREACHED:
       'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+
     COMPLETED:
       'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+
+    COMPLETED_ON_TIME:
+      'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+
+    COMPLETED_LATE:
+      'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+
+    UNKNOWN:
+      'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
   };
 
   const status = String(ticket.status || 'OPEN').toUpperCase();
@@ -54,23 +65,40 @@ const TicketCard = ({ ticket, showCreator }) => {
 
   const backendSlaStatus = String(ticket.slaStatus || '').toUpperCase();
 
+  const resolvedAt = ticket.resolvedAt
+    ? new Date(ticket.resolvedAt)
+    : null;
+
+  const hasValidResolvedDate =
+    resolvedAt && !Number.isNaN(resolvedAt.getTime());
+
   const fallbackSlaStatus = !hasValidSlaDate
     ? 'UNKNOWN'
     : isResolved
-      ? 'COMPLETED'
+      ? hasValidResolvedDate
+        ? resolvedAt.getTime() <= slaDueAt.getTime()
+          ? 'COMPLETED_ON_TIME'
+          : 'COMPLETED_LATE'
+        : 'COMPLETED'
       : slaDueAt.getTime() < Date.now()
         ? 'BREACHED'
-        : 'ON_TRACK';
+        : slaDueAt.getTime() - Date.now() <= 60 * 60 * 1000
+          ? 'AT_RISK'
+          : 'ON_TRACK';
 
   const slaStatus = backendSlaStatus || fallbackSlaStatus;
 
-  const slaLabel = {
+  const slaLabels = {
     ON_TRACK: 'On Track',
     AT_RISK: 'At Risk',
     BREACHED: 'Breached',
     COMPLETED: 'Completed',
+    COMPLETED_ON_TIME: 'Completed On Time',
+    COMPLETED_LATE: 'Completed Late',
     UNKNOWN: 'No SLA',
-  }[slaStatus] || 'Unknown';
+  };
+
+  const slaLabel = slaLabels[slaStatus] || 'Unknown';
 
   const formatDate = (value) => {
     if (!value) return null;
@@ -89,6 +117,7 @@ const TicketCard = ({ ticket, showCreator }) => {
   };
 
   const createdAt = formatDate(ticket.createdAt);
+
   const assignedTo =
     ticket.assignedToUsername ||
     ticket.assignedTo?.username ||
@@ -96,6 +125,7 @@ const TicketCard = ({ ticket, showCreator }) => {
 
   return (
     <article className="group relative overflow-hidden rounded-xl border border-stone/60 bg-white/80 px-3 py-3 transition-all hover:border-champagne/80 hover:shadow-sm dark:border-[#55595D] dark:bg-[#34383C]">
+
       {/* Priority indicator */}
       <div
         className={`absolute bottom-3 left-0 top-3 w-1 rounded-r-full ${
@@ -104,6 +134,7 @@ const TicketCard = ({ ticket, showCreator }) => {
       />
 
       <div className="min-w-0 pl-2">
+
         {/* Title and status */}
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="min-w-0">
@@ -151,6 +182,7 @@ const TicketCard = ({ ticket, showCreator }) => {
 
         {/* SLA information */}
         <div className="mt-3 rounded-lg border border-stone/50 bg-stone/5 px-2.5 py-2 dark:border-[#55595D] dark:bg-[#292D31]/50">
+
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-charcoal/50 dark:text-ivory/50">
               SLA
@@ -180,6 +212,18 @@ const TicketCard = ({ ticket, showCreator }) => {
             </div>
           )}
 
+          {isResolved && hasValidResolvedDate && (
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] text-charcoal/55 dark:text-ivory/55">
+                Resolved
+              </span>
+
+              <span className="text-[10px] font-medium text-charcoal/70 dark:text-ivory/70">
+                {formatDate(ticket.resolvedAt)}
+              </span>
+            </div>
+          )}
+
           {!hasValidSlaDate && (
             <p className="mt-1 text-[10px] text-charcoal/50 dark:text-ivory/50">
               SLA deadline not available
@@ -189,6 +233,7 @@ const TicketCard = ({ ticket, showCreator }) => {
 
         {/* People and creation date */}
         <div className="mt-3 grid grid-cols-1 gap-1.5">
+
           {showCreator && (
             <div className="flex min-w-0 items-center justify-between gap-2 text-[10px]">
               <span className="shrink-0 text-charcoal/50 dark:text-ivory/50">
@@ -224,6 +269,7 @@ const TicketCard = ({ ticket, showCreator }) => {
               </span>
             </div>
           )}
+
         </div>
       </div>
     </article>
