@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+
 import {
     useGetMyAssetRequestsQuery,
     useGetAllAssetRequestsQuery,
@@ -24,11 +25,27 @@ const categories = [
     "OTHER",
 ];
 
+const normalizeStatus = (status) =>
+    String(status || "").trim().toUpperCase();
+
+const normalizeCategory = (category) =>
+    String(category || "").trim().toUpperCase();
+
 const AssetRequest = ({ darkMode, userRole }) => {
-    const isStaff = userRole === "ADMIN" || userRole === "IT_SUPPORT";
+    const role = String(userRole || "")
+        .trim()
+        .toUpperCase()
+        .replace("ROLE_", "");
+
+    const isStaff = role === "ADMIN" || role === "IT_SUPPORT";
 
     const myQuery = useGetMyAssetRequestsQuery();
+
     const allQuery = useGetAllAssetRequestsQuery(undefined, {
+        skip: !isStaff,
+    });
+
+    const assetsQuery = useGetAllAssetsQuery(undefined, {
         skip: !isStaff,
     });
 
@@ -38,14 +55,11 @@ const AssetRequest = ({ darkMode, userRole }) => {
     const [reviewRequest, { isLoading: isReviewing }] =
         useReviewAssetRequestMutation();
 
-    const [cancelRequest] = useCancelAssetRequestMutation();
+    const [cancelRequest, { isLoading: isCancelling }] =
+        useCancelAssetRequestMutation();
 
     const [fulfillRequest, { isLoading: isFulfilling }] =
         useFulfillAssetRequestMutation();
-
-    const assetsQuery = useGetAllAssetsQuery(undefined, {
-        skip: !isStaff,
-    });
 
     const [selectedAssets, setSelectedAssets] = useState({});
     const [category, setCategory] = useState("LAPTOP");
@@ -76,6 +90,7 @@ const AssetRequest = ({ darkMode, userRole }) => {
             if (list && typeof list === "object") {
                 if (Array.isArray(list.data)) return list.data;
                 if (Array.isArray(list.requests)) return list.requests;
+                if (Array.isArray(list.items)) return list.items;
             }
         }
 
@@ -84,30 +99,39 @@ const AssetRequest = ({ darkMode, userRole }) => {
 
     const myRequests = normalize(myQuery.data);
     const allRequests = normalize(allQuery.data);
-    console.log("REQUEST DATA:", JSON.stringify(allQuery.data, null, 2));
-    console.log("REQUEST ERROR:", allQuery.error);
-    console.log("REQUEST STATUS:", allQuery.status);
-    console.log("REQUEST IS ERROR:", allQuery.isError);
-
-    const requests = isStaff ? allRequests : myRequests;
     const assets = normalize(assetsQuery.data);
 
-    const getAvailableAssets = (assetCategory) =>
-        assets.filter(
-            (asset) =>
-                asset.status === "AVAILABLE" &&
-                asset.category === assetCategory
-        );
+    const requests = isStaff ? allRequests : myRequests;
 
-    const cardClass = `rounded-xl border p-5 ${darkMode
-        ? "border-[#55595D] bg-[#34383C]"
-        : "border-stone/70 bg-white"
-        }`;
+    const getAvailableAssets = (requestCategory) => {
+        const normalizedRequestCategory =
+            normalizeCategory(requestCategory);
 
-    const inputClass = `w-full rounded-lg border px-3 py-2 text-sm ${darkMode
-        ? "border-[#55595D] bg-[#292D30] text-ivory"
-        : "border-stone bg-white text-charcoal"
-        }`;
+        return assets.filter((asset) => {
+            const assetStatus = normalizeStatus(asset.status);
+
+            const assetCategory = normalizeCategory(
+                asset.category || asset.assetCategory
+            );
+
+            return (
+                assetStatus === "AVAILABLE" &&
+                assetCategory === normalizedRequestCategory
+            );
+        });
+    };
+
+    const cardClass = `rounded-xl border p-5 ${
+        darkMode
+            ? "border-[#55595D] bg-[#34383C]"
+            : "border-stone/70 bg-white"
+    }`;
+
+    const inputClass = `w-full rounded-lg border px-3 py-2 text-sm ${
+        darkMode
+            ? "border-[#55595D] bg-[#292D30] text-ivory"
+            : "border-stone bg-white text-charcoal"
+    }`;
 
     const mutedText = darkMode
         ? "text-ivory/60"
@@ -115,6 +139,7 @@ const AssetRequest = ({ darkMode, userRole }) => {
 
     const handleCreate = async (event) => {
         event.preventDefault();
+
         setError("");
         setMessage("");
 
@@ -147,7 +172,10 @@ const AssetRequest = ({ darkMode, userRole }) => {
 
         try {
             await reviewRequest({ id, status }).unwrap();
-            setMessage(`Request ${status.toLowerCase()} successfully.`);
+
+            setMessage(
+                `Request ${status.toLowerCase()} successfully.`
+            );
         } catch (err) {
             setError(
                 err?.data?.message ||
@@ -158,7 +186,11 @@ const AssetRequest = ({ darkMode, userRole }) => {
     };
 
     const handleCancel = async (id) => {
-        if (!window.confirm("Are you sure you want to cancel this request?")) {
+        if (
+            !window.confirm(
+                "Are you sure you want to cancel this request?"
+            )
+        ) {
             return;
         }
 
@@ -194,7 +226,9 @@ const AssetRequest = ({ darkMode, userRole }) => {
                 assetId: Number(assetId),
             }).unwrap();
 
-            setMessage("Equipment request fulfilled successfully.");
+            setMessage(
+                "Equipment request fulfilled successfully."
+            );
 
             setSelectedAssets((previous) => {
                 const updated = { ...previous };
@@ -214,26 +248,180 @@ const AssetRequest = ({ darkMode, userRole }) => {
         date ? new Date(date).toLocaleString() : "-";
 
     const statusClass = (status) => {
-        switch (status) {
+        switch (normalizeStatus(status)) {
             case "APPROVED":
                 return "bg-green-100 text-green-700";
+
             case "REJECTED":
                 return "bg-red-100 text-red-700";
+
             case "FULFILLED":
                 return "bg-blue-100 text-blue-700";
+
             case "CANCELLED":
                 return "bg-gray-200 text-gray-700";
+
             default:
                 return "bg-yellow-100 text-yellow-700";
         }
     };
 
+    const renderActions = (request) => {
+        const status = normalizeStatus(request.status);
+
+        if (isStaff && status === "PENDING") {
+            return (
+                <div className="flex gap-3">
+                    <button
+                        type="button"
+                        disabled={isReviewing}
+                        onClick={() =>
+                            handleReview(request.id, "APPROVED")
+                        }
+                        className="font-medium text-green-600 hover:underline disabled:opacity-50"
+                    >
+                        Approve
+                    </button>
+
+                    <button
+                        type="button"
+                        disabled={isReviewing}
+                        onClick={() =>
+                            handleReview(request.id, "REJECTED")
+                        }
+                        className="font-medium text-red-500 hover:underline disabled:opacity-50"
+                    >
+                        Reject
+                    </button>
+                </div>
+            );
+        }
+
+        if (isStaff && status === "APPROVED") {
+            const availableAssets =
+                getAvailableAssets(request.category);
+
+            return (
+                <div className="flex min-w-[220px] flex-col gap-2">
+                    <select
+                        value={selectedAssets[request.id] || ""}
+                        onChange={(event) =>
+                            setSelectedAssets((previous) => ({
+                                ...previous,
+                                [request.id]: event.target.value,
+                            }))
+                        }
+                        className={inputClass}
+                    >
+                        <option value="">
+                            Select available equipment
+                        </option>
+
+                        {availableAssets.map((asset) => (
+                            <option
+                                key={asset.id}
+                                value={asset.id}
+                            >
+                                {asset.assetTag || `Asset #${asset.id}`}
+                                {" - "}
+                                {asset.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <button
+                        type="button"
+                        disabled={
+                            isFulfilling ||
+                            !selectedAssets[request.id] ||
+                            availableAssets.length === 0
+                        }
+                        onClick={() =>
+                            handleFulfill(request.id)
+                        }
+                        className="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                    >
+                        {isFulfilling
+                            ? "Processing..."
+                            : "Fulfill Request"}
+                    </button>
+
+                    {availableAssets.length === 0 && (
+                        <span className="text-xs text-red-500">
+                            No available equipment in this category.
+                        </span>
+                    )}
+                </div>
+            );
+        }
+
+        if (!isStaff && status === "PENDING") {
+            return (
+                <button
+                    type="button"
+                    disabled={isCancelling}
+                    onClick={() => handleCancel(request.id)}
+                    className="font-medium text-red-500 hover:underline disabled:opacity-50"
+                >
+                    Cancel
+                </button>
+            );
+        }
+
+        if (!isStaff && status === "APPROVED") {
+            return (
+                <span className="text-xs font-medium text-green-600">
+                    Approved - Awaiting equipment assignment
+                </span>
+            );
+        }
+
+        if (status === "FULFILLED") {
+            return (
+                <span className="text-xs font-medium text-blue-600">
+                    Equipment assigned
+                </span>
+            );
+        }
+
+        if (status === "REJECTED") {
+            return (
+                <span className="text-xs text-red-500">
+                    Request rejected
+                </span>
+            );
+        }
+
+        if (status === "CANCELLED") {
+            return (
+                <span className={`text-xs ${mutedText}`}>
+                    Request cancelled
+                </span>
+            );
+        }
+
+        return "-";
+    };
+
+    const isLoading = isStaff
+        ? allQuery.isLoading
+        : myQuery.isLoading;
+
+    const isError = isStaff
+        ? allQuery.isError
+        : myQuery.isError;
+
     return (
-        <div className={`flex flex-col gap-5 ${darkMode ? "text-ivory" : "text-charcoal"}`}>
+        <div
+            className={`flex flex-col gap-5 ${
+                darkMode ? "text-ivory" : "text-charcoal"
+            }`}
+        >
             <div>
                 <h2 className="text-xl font-semibold">
                     Equipment Requests
                 </h2>
+
                 <p className={`mt-1 text-sm ${mutedText}`}>
                     {isStaff
                         ? "Review and manage employee equipment requests."
@@ -259,14 +447,20 @@ const AssetRequest = ({ darkMode, userRole }) => {
                         Request Equipment
                     </h3>
 
-                    <form onSubmit={handleCreate} className="flex flex-col gap-4">
+                    <form
+                        onSubmit={handleCreate}
+                        className="flex flex-col gap-4"
+                    >
                         <div>
                             <label className="mb-1 block text-sm font-medium">
                                 Equipment Category
                             </label>
+
                             <select
                                 value={category}
-                                onChange={(event) => setCategory(event.target.value)}
+                                onChange={(event) =>
+                                    setCategory(event.target.value)
+                                }
                                 className={inputClass}
                             >
                                 {categories.map((item) => (
@@ -281,9 +475,12 @@ const AssetRequest = ({ darkMode, userRole }) => {
                             <label className="mb-1 block text-sm font-medium">
                                 Description
                             </label>
+
                             <textarea
                                 value={description}
-                                onChange={(event) => setDescription(event.target.value)}
+                                onChange={(event) =>
+                                    setDescription(event.target.value)
+                                }
                                 rows={3}
                                 required
                                 placeholder="Explain why you need this equipment..."
@@ -296,7 +493,9 @@ const AssetRequest = ({ darkMode, userRole }) => {
                             disabled={isCreating}
                             className="self-start rounded-lg bg-charcoal px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 dark:bg-ivory dark:text-charcoal"
                         >
-                            {isCreating ? "Submitting..." : "Submit Request"}
+                            {isCreating
+                                ? "Submitting..."
+                                : "Submit Request"}
                         </button>
                     </form>
                 </div>
@@ -304,14 +503,16 @@ const AssetRequest = ({ darkMode, userRole }) => {
 
             <div className={cardClass}>
                 <h3 className="mb-4 text-lg font-semibold">
-                    {isStaff ? "All Equipment Requests" : "My Equipment Requests"}
+                    {isStaff
+                        ? "All Equipment Requests"
+                        : "My Equipment Requests"}
                 </h3>
 
-                {(isStaff ? allQuery.isLoading : myQuery.isLoading) ? (
+                {isLoading ? (
                     <p className={`py-6 text-center text-sm ${mutedText}`}>
                         Loading requests...
                     </p>
-                ) : (isStaff ? allQuery.isError : myQuery.isError) ? (
+                ) : isError ? (
                     <p className="py-6 text-center text-sm text-red-500">
                         Unable to load equipment requests.
                     </p>
@@ -323,16 +524,38 @@ const AssetRequest = ({ darkMode, userRole }) => {
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[750px] text-left text-sm">
                             <thead>
-                                <tr className={`border-b ${darkMode
-                                    ? "border-[#55595D] text-ivory/60"
-                                    : "border-stone text-charcoal/60"
-                                    }`}>
-                                    {isStaff && <th className="px-3 py-3">Employee</th>}
-                                    <th className="px-3 py-3">Category</th>
-                                    <th className="px-3 py-3">Description</th>
-                                    <th className="px-3 py-3">Created At</th>
-                                    <th className="px-3 py-3">Status</th>
-                                    <th className="px-3 py-3">Actions</th>
+                                <tr
+                                    className={`border-b ${
+                                        darkMode
+                                            ? "border-[#55595D] text-ivory/60"
+                                            : "border-stone text-charcoal/60"
+                                    }`}
+                                >
+                                    {isStaff && (
+                                        <th className="px-3 py-3">
+                                            Employee
+                                        </th>
+                                    )}
+
+                                    <th className="px-3 py-3">
+                                        Category
+                                    </th>
+
+                                    <th className="px-3 py-3">
+                                        Description
+                                    </th>
+
+                                    <th className="px-3 py-3">
+                                        Created At
+                                    </th>
+
+                                    <th className="px-3 py-3">
+                                        Status
+                                    </th>
+
+                                    <th className="px-3 py-3">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
 
@@ -340,10 +563,11 @@ const AssetRequest = ({ darkMode, userRole }) => {
                                 {requests.map((request) => (
                                     <tr
                                         key={request.id}
-                                        className={`border-b ${darkMode
-                                            ? "border-[#55595D]"
-                                            : "border-stone/60"
-                                            }`}
+                                        className={`border-b ${
+                                            darkMode
+                                                ? "border-[#55595D]"
+                                                : "border-stone/60"
+                                        }`}
                                     >
                                         {isStaff && (
                                             <td className="px-3 py-3">
@@ -354,7 +578,9 @@ const AssetRequest = ({ darkMode, userRole }) => {
                                         )}
 
                                         <td className="px-3 py-3">
-                                            {request.category?.replaceAll("_", " ")}
+                                            {normalizeCategory(
+                                                request.category
+                                            ).replaceAll("_", " ")}
                                         </td>
 
                                         <td className="px-3 py-3">
@@ -366,93 +592,17 @@ const AssetRequest = ({ darkMode, userRole }) => {
                                         </td>
 
                                         <td className="px-3 py-3">
-                                            <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(request.status)}`}>
-                                                {request.status}
+                                            <span
+                                                className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass(
+                                                    request.status
+                                                )}`}
+                                            >
+                                                {normalizeStatus(request.status)}
                                             </span>
                                         </td>
 
                                         <td className="px-3 py-3">
-                                            {isStaff && request.status === "PENDING" && (
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        type="button"
-                                                        disabled={isReviewing}
-                                                        onClick={() => handleReview(request.id, "APPROVED")}
-                                                        className="font-medium text-green-600 hover:underline"
-                                                    >
-                                                        Approve
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        disabled={isReviewing}
-                                                        onClick={() => handleReview(request.id, "REJECTED")}
-                                                        className="font-medium text-red-500 hover:underline"
-                                                    >
-                                                        Reject
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {isStaff && request.status === "APPROVED" && (
-                                                <div className="flex min-w-[220px] flex-col gap-2">
-                                                    <select
-                                                        value={selectedAssets[request.id] || ""}
-                                                        onChange={(event) =>
-                                                            setSelectedAssets((previous) => ({
-                                                                ...previous,
-                                                                [request.id]: event.target.value,
-                                                            }))
-                                                        }
-                                                        className={inputClass}
-                                                    >
-                                                        <option value="">
-                                                            Select available equipment
-                                                        </option>
-
-                                                        {getAvailableAssets(request.category).map((asset) => (
-                                                            <option key={asset.id} value={asset.id}>
-                                                                {asset.assetTag} - {asset.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-
-                                                    <button
-                                                        type="button"
-                                                        disabled={
-                                                            isFulfilling ||
-                                                            !selectedAssets[request.id] ||
-                                                            getAvailableAssets(request.category).length === 0
-                                                        }
-                                                        onClick={() => handleFulfill(request.id)}
-                                                        className="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50"
-                                                    >
-                                                        {isFulfilling ? "Processing..." : "Fulfill Request"}
-                                                    </button>
-
-                                                    {getAvailableAssets(request.category).length === 0 && (
-                                                        <span className="text-xs text-red-500">
-                                                            No available equipment in this category.
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {!isStaff && request.status === "PENDING" && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleCancel(request.id)}
-                                                    className="font-medium text-red-500 hover:underline"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            )}
-
-                                            {(
-                                                request.status === "FULFILLED" ||
-                                                request.status === "REJECTED" ||
-                                                request.status === "CANCELLED"
-                                            ) && "-"}
+                                            {renderActions(request)}
                                         </td>
                                     </tr>
                                 ))}
