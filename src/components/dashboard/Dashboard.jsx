@@ -40,13 +40,15 @@ import StatCard from './widgets/StatCard';
 
 import LiveClock from '../LiveClock';
 
-import ActivityHistory from './ActivityHistory.jsx';
+import ActivityHistory from './ActivityHistory';
 
-import AnnouncementBell from './AnnouncementBell.jsx';
+import AnnouncementBell from './AnnouncementBell';
 
-import ITManagerPanel from '../manager/ITManagerPanel.jsx';
+import ITManagerPanel from '../manager/ITManagerPanel';
 
-import AssetManagement from './assets/AssetManagement.jsx';
+import AssetManagement from './assets/AssetManagement';
+
+import AssetRequest from './assets/AssetRequest';
 
 const Dashboard = ({ darkMode, onToggleTheme }) => {
 
@@ -250,6 +252,11 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
 
     setActiveSection('assets');
 
+  };
+
+  const handleOpenAssetRequests = () => {
+
+    setActiveSection('assetRequests');
   };
 
   const handleCreateTicket = async (event) => {
@@ -554,6 +561,7 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
               aria-label="Asset Management"
               className={navigationBoxStyle}
             >
+
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
@@ -567,8 +575,39 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
                 <rect x="3" y="4" width="18" height="13" rx="2" />
                 <path d="M8 21h8M12 17v4" />
               </svg>
+
+
               <span className="whitespace-nowrap text-[10px] font-semibold">
                 Assets
+              </span>
+            </div>
+            {/* Asset Requests */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={handleOpenAssetRequests}
+              onKeyDown={(e) =>
+                handleKeyboardNavigation(e, handleOpenAssetRequests)
+              }
+              title="Asset Requests"
+              aria-label="Asset Requests"
+              className={navigationBoxStyle}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <path d="M8 3h8l4 4v14H4V3h4Z" />
+                <path d="M8 12h8M8 16h8M14 3v5h6" />
+              </svg>
+              <span className="whitespace-nowrap text-[10px] font-semibold">
+                Requests
               </span>
             </div>
 
@@ -966,6 +1005,13 @@ const Dashboard = ({ darkMode, onToggleTheme }) => {
           <AssetManagement
             onBack={handleBackToDashboard}
             darkMode={darkMode}
+          />
+        )}
+
+        {activeSection === 'assetRequests' && (
+          <AssetRequest
+            darkMode={darkMode}
+            userRole={role}
           />
         )}
 

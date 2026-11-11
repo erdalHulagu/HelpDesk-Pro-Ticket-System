@@ -49,6 +49,7 @@ const AssetManagement = ({ onBack, darkMode }) => {
     error,
   } = useGetAllAssetsQuery();
 
+
   const [createAsset, { isLoading: isCreating }] =
     useCreateAssetMutation();
 
@@ -75,30 +76,27 @@ const AssetManagement = ({ onBack, darkMode }) => {
     filterStatus === "ALL"
       ? assets
       : assets.filter(
-          (asset) => asset.status === filterStatus
-        );
+        (asset) => asset.status === filterStatus
+      );
 
-  const cardClass = `rounded-xl border p-5 ${
-    darkMode
+  const cardClass = `rounded-xl border p-5 ${darkMode
       ? "border-[#55595D] bg-[#34383C]"
       : "border-stone/70 bg-white"
-  }`;
+    }`;
 
   const mutedText = darkMode
     ? "text-ivory/60"
     : "text-charcoal/60";
 
-  const inputClass = `w-full rounded-lg border px-3 py-2 text-sm outline-none ${
-    darkMode
+  const inputClass = `w-full rounded-lg border px-3 py-2 text-sm outline-none ${darkMode
       ? "border-[#55595D] bg-[#292D30] text-ivory"
       : "border-stone bg-white text-charcoal"
-  }`;
+    }`;
 
-  const buttonClass = `rounded-lg border px-4 py-2 text-sm font-medium transition ${
-    darkMode
+  const buttonClass = `rounded-lg border px-4 py-2 text-sm font-medium transition ${darkMode
       ? "border-[#55595D] hover:bg-[#42474B]"
       : "border-stone/70 hover:bg-champagne/20"
-  }`;
+    }`;
 
   const openCreateForm = () => {
     setEditingAsset(null);
@@ -225,9 +223,8 @@ const AssetManagement = ({ onBack, darkMode }) => {
 
   return (
     <div
-      className={`flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto ${
-        darkMode ? "text-ivory" : "text-charcoal"
-      }`}
+      className={`flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto ${darkMode ? "text-ivory" : "text-charcoal"
+        }`}
     >
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -497,7 +494,10 @@ const AssetManagement = ({ onBack, darkMode }) => {
           </p>
         ) : isError ? (
           <p className="py-8 text-center text-sm text-red-500">
-            Unable to load assets. Please check the API connection.
+            {error?.data?.message ||
+              error?.data?.error ||
+              error?.error ||
+              "Unable to load assets. Please check the API connection."}
           </p>
         ) : filteredAssets.length === 0 ? (
           <p className={`py-8 text-center text-sm ${mutedText}`}>
@@ -508,11 +508,10 @@ const AssetManagement = ({ onBack, darkMode }) => {
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
                 <tr
-                  className={`border-b ${
-                    darkMode
+                  className={`border-b ${darkMode
                       ? "border-[#55595D] text-ivory/60"
                       : "border-stone text-charcoal/60"
-                  }`}
+                    }`}
                 >
                   <th className="px-3 py-3">Asset Tag</th>
                   <th className="px-3 py-3">Device</th>
@@ -528,11 +527,10 @@ const AssetManagement = ({ onBack, darkMode }) => {
                 {filteredAssets.map((asset) => (
                   <tr
                     key={asset.id}
-                    className={`border-b ${
-                      darkMode
+                    className={`border-b ${darkMode
                         ? "border-[#55595D] hover:bg-[#42474B]"
                         : "border-stone/60 hover:bg-champagne/10"
-                    }`}
+                      }`}
                   >
                     <td className="px-3 py-3 font-medium">
                       {asset.assetTag}

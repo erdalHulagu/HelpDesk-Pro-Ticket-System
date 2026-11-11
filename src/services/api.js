@@ -25,6 +25,8 @@ export const api = createApi({
     'Notification',
     'Announcement',
     'Asset',
+    'AssetAssignment',
+    'AssetRequest'
    
   ],
   endpoints: () => ({}),
